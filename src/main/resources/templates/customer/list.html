@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="common/fragments :: common-head">
+</head>
+<body class="sb-nav-fixed">
+
+<nav th:replace="common/fragments :: top-nav"></nav>
+
+<div id="layoutSidenav">
+    <div th:replace="common/fragments :: side-nav"></div>
+
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4">고객 리스트</h1>
+                <ol class="breadcrumb mb-4">
+                    <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+                    <li class="breadcrumb-item active">고객 목록</li>
+                </ol>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="fas fa-table me-1"></i>
+                        고객 데이터 테이블 (테스트)
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr><th>이름</th><th>이메일</th><th>가입일</th></tr>
+                            </thead>
+                            <tbody>
+                            <tr><td>Tiger Nixon</td><td>tiger@example.com</td><td>2026/04/25</td></tr>
+                            <tr><td>Garrett Winters</td><td>garrett@example.com</td><td>2026/07/25</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="common/fragments :: footer"></footer>
+    </div>
+</div>
+
+<div th:replace="common/fragments :: common-scripts"></div>
+</body>
+</html>
