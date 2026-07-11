@@ -29,7 +29,6 @@ public class GlobalExceptionHandler {
     // 커스텀 에러 핸들
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<String> handleCustomException(CustomException ex) {
-
         return ResponseEntity
                 .status(ex.getStatus())
                 .body(ex.getMessage());
