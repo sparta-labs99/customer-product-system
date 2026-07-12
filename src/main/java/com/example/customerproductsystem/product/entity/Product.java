@@ -22,7 +22,7 @@ public class Product extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "category", length = 50, nullable = false)
-    private ProductEnum.Category category;
+    private Categories category;
 
     @Column
     private int price;
@@ -32,7 +32,7 @@ public class Product extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", length = 20, nullable = false)
-    private ProductEnum.ProductStatus status;
+    private ProductStatus status;
 
     /*
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -40,7 +40,7 @@ public class Product extends BaseEntity {
     private Admin admin;
     */
 
-    public Product(String name, ProductEnum.Category category, int price, int stock, ProductEnum.ProductStatus status) {
+    public Product(String name, Categories category, int price, int stock, ProductStatus status) {
         this.name = name;
         this.category = category;
         this.price = price;
@@ -48,7 +48,7 @@ public class Product extends BaseEntity {
         this.status = status;
     }
 
-    public void update(String name, ProductEnum.Category category, int price) {
+    public void update(String name, Categories category, int price) {
         this.name = name;
         this.category = category;
         this.price = price;
@@ -57,12 +57,15 @@ public class Product extends BaseEntity {
     public void updateStock(int stock) {
         this.stock = stock;
 
-        if (stock == 0) {
-            this.status = ProductEnum.ProductStatus.OUT_OF_STOCK;
+        if (this.status == ProductStatus.OUT_OF_STOCK && stock > 0) {
+            this.status = ProductStatus.DISCONTINUED;
+        }
+        else if (this.status != ProductStatus.OUT_OF_STOCK && stock == 0) {
+            this.status = ProductStatus.OUT_OF_STOCK;
         }
     }
 
-    public void updateStatus(ProductEnum.ProductStatus status) {
+    public void updateStatus(ProductStatus status) {
         this.status = status;
     }
 }

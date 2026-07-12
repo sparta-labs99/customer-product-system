@@ -1,8 +1,9 @@
 package com.example.customerproductsystem.product.service;
 
 import com.example.customerproductsystem.product.dto.*;
+import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.product.entity.Product;
-import com.example.customerproductsystem.product.entity.ProductEnum;
+import com.example.customerproductsystem.product.entity.ProductStatus;
 import com.example.customerproductsystem.product.error.ProductNotFoundException;
 import com.example.customerproductsystem.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,11 @@ public class ProductService {
     @Transactional
     public CreateProductResponse create (CreateProductRequest request) {
 
-        ProductEnum.Category category =
-                ProductEnum.Category.from(request.getCategory());
+        Categories category =
+                Categories.from(request.getCategory());
 
-        ProductEnum.ProductStatus status =
-                ProductEnum.ProductStatus.from(request.getStatus());
+        ProductStatus status =
+                ProductStatus.from(request.getStatus());
 
         Product product = new Product(
                 request.getName(),
@@ -70,8 +71,8 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(ProductNotFoundException::new);
 
-        ProductEnum.Category category =
-                ProductEnum.Category.from(request.getCategory());
+        Categories category =
+                Categories.from(request.getCategory());
 
         product.update(request.getName(), category, request.getPrice());
 
@@ -118,8 +119,8 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(ProductNotFoundException::new);
 
-        ProductEnum.ProductStatus status =
-                ProductEnum.ProductStatus.from(newStatus);
+        ProductStatus status =
+                ProductStatus.from(newStatus);
 
         product.updateStatus(status);
 
@@ -137,14 +138,13 @@ public class ProductService {
         );
     }
 
-
     @Transactional
     public void delete(Long id) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(ProductNotFoundException::new);
 
-        product.updateStatus(ProductEnum.ProductStatus.DELETED);
+        product.updateStatus(ProductStatus.DELETED);
 
         productRepository.save(product);
 
