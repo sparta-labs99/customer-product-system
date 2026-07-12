@@ -4,9 +4,13 @@ import com.example.customerproductsystem.product.dto.*;
 import com.example.customerproductsystem.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,6 +32,18 @@ public class ProductController {
             @PathVariable Long id) {
 
         GetProductResponse result = productService.getOne(id);
+
+        return ResponseEntity.status(HttpStatus.OK).body(result);
+    }
+
+    @GetMapping("/products")
+    public ResponseEntity<List<GetProductResponse>> getAll(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            Pageable pageable
+            ) {
+
+        List<GetProductResponse> result = productService.getAll(keyword, status, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
