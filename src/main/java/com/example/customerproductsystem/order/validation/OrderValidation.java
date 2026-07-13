@@ -2,7 +2,7 @@ package com.example.customerproductsystem.order.validation;
 
 import com.example.customerproductsystem.common.Error.CustomException;
 import com.example.customerproductsystem.product.entity.Product;
-import com.example.customerproductsystem.product.entity.ProductEnum;
+import com.example.customerproductsystem.product.entity.ProductStatus;
 import org.springframework.http.HttpStatus;
 
 public class OrderValidation {
@@ -14,11 +14,11 @@ public class OrderValidation {
             throw new CustomException(HttpStatus.BAD_REQUEST, "수량은 1 이상이어야 합니다.");
         }
 
-        if (product.getStatus() == ProductEnum.ProductStatus.DISCONTINUED) {
+        if (product.getStatus() == ProductStatus.DISCONTINUED) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "단종 상품입니다.");
         }
 
-        if (product.getStatus() == ProductEnum.ProductStatus.OUT_OF_STOCK) {
+        if (product.getStatus() == ProductStatus.OUT_OF_STOCK) {
             throw new CustomException(HttpStatus.BAD_REQUEST, "품절 상품입니다.");
         }
 
