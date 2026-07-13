@@ -1,4 +1,4 @@
-package com.example.customerproductsystem.common.Error;
+package com.example.customerproductsystem.common.error;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

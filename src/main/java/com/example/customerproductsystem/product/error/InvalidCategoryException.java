@@ -1,6 +1,6 @@
 package com.example.customerproductsystem.product.error;
 
-import com.example.customerproductsystem.common.Error.CustomException;
+import com.example.customerproductsystem.common.error.CustomException;
 import org.springframework.http.HttpStatus;
 
 public class InvalidCategoryException extends CustomException {

@@ -7,7 +7,7 @@ import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.admin.entity.AdminStatus;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.auth.LoginAdmin;
-import com.example.customerproductsystem.common.Error.CustomException;
+import com.example.customerproductsystem.common.error.CustomException;
 import com.example.customerproductsystem.common.config.PasswordEncoder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

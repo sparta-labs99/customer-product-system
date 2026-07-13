@@ -1,6 +1,6 @@
 package com.example.customerproductsystem.order.validation;
 
-import com.example.customerproductsystem.common.Error.CustomException;
+import com.example.customerproductsystem.common.error.CustomException;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
 import org.springframework.http.HttpStatus;

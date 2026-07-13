@@ -19,7 +19,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping("/products")
-    public ResponseEntity<CreateProductResponse> create (
+    public ResponseEntity<CreateProductResponse> createProduct (
             @Valid @RequestBody CreateProductRequest request) {
 
         CreateProductResponse result = productService.create(request);
@@ -28,7 +28,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public ResponseEntity<GetProductResponse> getOne(
+    public ResponseEntity<GetProductResponse> getProduct(
             @PathVariable Long id) {
 
         GetProductResponse result = productService.getOne(id);
@@ -37,7 +37,7 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public ResponseEntity<List<GetProductResponse>> getAll(
+    public ResponseEntity<List<GetProductResponse>> getAllProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             Pageable pageable
@@ -49,7 +49,7 @@ public class ProductController {
     }
 
     @PutMapping("/products/{id}")
-    public ResponseEntity<UpdateProductResponse> update(
+    public ResponseEntity<UpdateProductResponse> updateProduct(
             @PathVariable Long id,
             @Valid @RequestBody UpdateProductRequest request) {
 
@@ -59,7 +59,7 @@ public class ProductController {
     }
 
     @PatchMapping("/products/{id}/stock")
-    public ResponseEntity<UpdateProductResponse> updateStock(
+    public ResponseEntity<UpdateProductResponse> updateProductStock(
             @PathVariable Long id,
             @RequestParam int count) {
 
@@ -69,7 +69,7 @@ public class ProductController {
     }
 
     @PatchMapping("/products/{id}/status")
-    public ResponseEntity<UpdateProductResponse> updateStatus(
+    public ResponseEntity<UpdateProductResponse> updateProductStatus(
             @PathVariable Long id,
             @RequestParam String status) {
 
@@ -79,7 +79,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/products/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Void> deleteProduct(
             @PathVariable Long id) {
 
         productService.delete(id);

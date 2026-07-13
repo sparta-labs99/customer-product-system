@@ -4,7 +4,6 @@ import com.example.customerproductsystem.common.entity.BaseEntity;
 import com.example.customerproductsystem.order.tempFile.Admin;
 import com.example.customerproductsystem.order.tempFile.Customer;
 import com.example.customerproductsystem.product.entity.Product;
-import com.example.customerproductsystem.product.entity.ProductEnum;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;

@@ -1,6 +1,6 @@
 package com.example.customerproductsystem.order.service;
 
-import com.example.customerproductsystem.common.Error.CustomException;
+import com.example.customerproductsystem.common.error.CustomException;
 import com.example.customerproductsystem.order.dto.CreateOrderRequest;
 import com.example.customerproductsystem.order.dto.CreateOrderResponse;
 import com.example.customerproductsystem.order.entity.Order;
@@ -14,10 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.concurrent.ThreadLocalRandom;
 
 import static com.example.customerproductsystem.order.util.GenerateOrderNum.generateOrderNumber;
 import static com.example.customerproductsystem.order.validation.OrderValidation.validate;
