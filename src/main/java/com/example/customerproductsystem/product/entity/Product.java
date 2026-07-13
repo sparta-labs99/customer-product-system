@@ -1,6 +1,7 @@
 package com.example.customerproductsystem.product.entity;
 
 
+import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -34,11 +35,9 @@ public class Product extends BaseEntity {
     @Column(name = "status", length = 20, nullable = false)
     private ProductStatus status;
 
-    /*
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
-    */
 
     public Product(String name, Categories category, int price, int stock, ProductStatus status) {
         this.name = name;
@@ -57,10 +56,11 @@ public class Product extends BaseEntity {
     public void updateStock(int stock) {
         this.stock = stock;
 
-        if (this.status == ProductStatus.OUT_OF_STOCK && stock > 0) {
-            this.status = ProductStatus.DISCONTINUED;
+        if (stock < 0) {
+            throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
         }
-        else if (this.status != ProductStatus.OUT_OF_STOCK && stock == 0) {
+
+        if (this.status != ProductStatus.OUT_OF_STOCK && stock == 0) {
             this.status = ProductStatus.OUT_OF_STOCK;
         }
     }

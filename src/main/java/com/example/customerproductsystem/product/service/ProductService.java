@@ -42,16 +42,7 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new CreateProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                product.getStock(),
-                product.getStatus(),
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
+        return CreateProductResponse.from(product);
     }
 
     @Transactional(readOnly = true)
@@ -60,16 +51,7 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(ProductNotFoundException::new);
 
-        return new GetProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                product.getStock(),
-                product.getStatus(),
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
+        return GetProductResponse.from(product);
     }
 
     @Transactional(readOnly = true)
@@ -85,16 +67,8 @@ public class ProductService {
 
         for (Product product : products) {
 
-            GetProductResponse dto = new GetProductResponse(
-                    product.getId(),
-                    product.getName(),
-                    product.getCategory(),
-                    product.getPrice(),
-                    product.getStock(),
-                    product.getStatus(),
-                    product.getCreatedAt(),
-                    product.getUpdatedAt()
-            );
+            GetProductResponse dto = GetProductResponse.from(product);
+
             dtos.add(dto);
         }
 
@@ -141,16 +115,7 @@ public class ProductService {
         // dirty checking에 의해 자동으로 업데이트 되지만 가독성을 위해서 작성
         productRepository.save(product);
 
-        return new UpdateProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                product.getStock(),
-                product.getStatus(),
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
+        return UpdateProductResponse.from(product);
     }
 
     @Transactional
@@ -163,16 +128,7 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new UpdateProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                product.getStock(),
-                product.getStatus(),
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
+        return UpdateProductResponse.from(product);
     }
 
     @Transactional
@@ -188,16 +144,7 @@ public class ProductService {
 
         productRepository.save(product);
 
-        return new UpdateProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getCategory(),
-                product.getPrice(),
-                product.getStock(),
-                product.getStatus(),
-                product.getCreatedAt(),
-                product.getUpdatedAt()
-        );
+        return UpdateProductResponse.from(product);
     }
 
     @Transactional
@@ -209,6 +156,5 @@ public class ProductService {
         product.updateStatus(ProductStatus.DELETED);
 
         productRepository.save(product);
-
     }
 }
