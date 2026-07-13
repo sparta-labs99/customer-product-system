@@ -16,12 +16,16 @@ public class GetProductResponse {
     private final int stock;
     private final ProductStatus status;
 
+    private final String adminName;
+    private final String adminEmail;
+
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
     public GetProductResponse(
             Long id, String name, Categories category,
             int price, int stock, ProductStatus status,
+            String adminName, String adminEmail,
             LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.name = name;
@@ -29,6 +33,8 @@ public class GetProductResponse {
         this.price = price;
         this.stock = stock;
         this.status = status;
+        this.adminName = adminName;
+        this.adminEmail = adminEmail;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

@@ -67,6 +67,8 @@ public class ProductService {
                 product.getPrice(),
                 product.getStock(),
                 product.getStatus(),
+                product.getAdmin().getName(),
+                product.getAdmin().getEmail(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );
@@ -92,6 +94,8 @@ public class ProductService {
                     product.getPrice(),
                     product.getStock(),
                     product.getStatus(),
+                    product.getAdmin().getName(),
+                    product.getAdmin().getEmail(),
                     product.getCreatedAt(),
                     product.getUpdatedAt()
             );
