@@ -75,7 +75,7 @@ public class ProductService {
         return dtos;
     }
 
-    public static Specification<Product> withCondition(
+    public Specification<Product> withCondition(
             String keyword,
             ProductStatus status
     ) {
