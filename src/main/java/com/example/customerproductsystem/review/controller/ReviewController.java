@@ -17,7 +17,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("reviews/{id}")
-    public ResponseEntity<GetReviewResponse> getOnd(
+    public ResponseEntity<GetReviewResponse> getReview(
             @PathVariable Long id
     ) {
         GetReviewResponse result = reviewService.getOne(id);
@@ -26,7 +26,7 @@ public class ReviewController {
     }
 
     @GetMapping("reviews")
-    public ResponseEntity<List<GetReviewResponse>> getAll(
+    public ResponseEntity<List<GetReviewResponse>> getAllReviews(
             @RequestParam String keyword,
             @RequestParam int rating,
             @RequestParam String status,
@@ -38,7 +38,7 @@ public class ReviewController {
     }
 
     @DeleteMapping("reviews/{id}")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Void> deleteReview(
             @PathVariable Long id
     ) {
         reviewService.delete(id);

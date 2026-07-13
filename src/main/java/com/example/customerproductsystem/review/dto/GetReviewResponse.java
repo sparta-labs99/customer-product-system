@@ -10,7 +10,7 @@ public record GetReviewResponse(
         String contents,
         int rating,
         ReviewStatus status,
-        String OrderNumber,
+        String orderNumber,
         String productName,        
         String customerName,
         LocalDateTime createdAt,
