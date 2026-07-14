@@ -7,7 +7,6 @@ import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.dto.RatingCountDto;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 public record GetProductDetailResponse(

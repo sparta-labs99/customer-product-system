@@ -3,10 +3,8 @@ package com.example.customerproductsystem.product.dto;
 import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
-import com.example.customerproductsystem.review.dto.GetReviewResponse;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 public record GetProductResponse(
         Long id,

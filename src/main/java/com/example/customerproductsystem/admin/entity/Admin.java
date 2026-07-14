@@ -2,6 +2,7 @@ package com.example.customerproductsystem.admin.entity;
 
 import com.example.customerproductsystem.common.entity.BaseEntity;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ import java.time.LocalDateTime;
                 )
         }
 )
+@Getter
 public class Admin extends BaseEntity {
 
     @Id
@@ -149,47 +151,4 @@ public class Admin extends BaseEntity {
     }
 
 
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getPhoneNumber() {
-        return phoneNumber;
-    }
-
-    public AdminRole getRole() {
-        return role;
-    }
-
-    public AdminStatus getStatus() {
-        return status;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public LocalDateTime getApprovedAt() {
-        return approvedAt;
-    }
-
-    public LocalDateTime getRejectedAt() {
-        return rejectedAt;
-    }
-
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
 }
