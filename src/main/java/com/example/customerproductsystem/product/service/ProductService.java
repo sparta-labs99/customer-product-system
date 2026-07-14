@@ -1,11 +1,19 @@
 package com.example.customerproductsystem.product.service;
 
+import com.example.customerproductsystem.admin.entity.Admin;
+import com.example.customerproductsystem.admin.repository.AdminRepository;
+import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.product.dto.*;
 import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
+import com.example.customerproductsystem.admin.error.AdminNotFoundException;
 import com.example.customerproductsystem.product.error.ProductNotFoundException;
 import com.example.customerproductsystem.product.repository.ProductRepository;
+import com.example.customerproductsystem.review.dto.GetReviewResponse;
+import com.example.customerproductsystem.review.dto.RatingCountDto;
+import com.example.customerproductsystem.review.entity.Review;
+import com.example.customerproductsystem.review.repository.ReviewRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,9 +30,11 @@ import java.util.List;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final AdminRepository adminRepository;
+    private final ReviewRepository reviewRepository;
 
     @Transactional
-    public CreateProductResponse create (CreateProductRequest request) {
+    public CreateProductResponse create (CreateProductRequest request, LoginAdmin sessionAdmin) {
 
         Categories category =
                 Categories.from(request.getCategory());
@@ -32,12 +42,16 @@ public class ProductService {
         ProductStatus status =
                 ProductStatus.from(request.getStatus());
 
+        Admin admin = adminRepository.findById(sessionAdmin.id()).orElseThrow(
+                AdminNotFoundException::new);
+
         Product product = new Product(
                 request.getName(),
                 category,
                 request.getPrice(),
                 request.getStock(),
-                status
+                status,
+                admin
         );
 
         productRepository.save(product);
@@ -46,18 +60,44 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public GetProductResponse getOne (Long id) {
+    public GetProductDetailResponse getOne (Long id) {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(ProductNotFoundException::new);
 
-        return GetProductResponse.from(product);
+        // 최근 리뷰 3개 찾기
+        List<Review> reviews = reviewRepository.findTop3ByProductIdOrderByCreatedAtDesc(id);
+        List<GetReviewResponse> reviewDtos = new ArrayList<>();
+        for (Review review : reviews) {
+            reviewDtos.add(GetReviewResponse.from(review));
+        }
+
+        // 평점 별 리뷰 갯수 찾기
+        List<RatingCountDto> counts = reviewRepository.countByRating(id);
+
+        // 모든 리뷰 갯수
+        long totalReviewCount = counts.stream()
+                .mapToLong(RatingCountDto::count)
+                .sum();
+
+        // 모든 평점의 합
+        long totalReviewRating = counts.stream()
+                .mapToLong(dto -> dto.rating() * dto.count())
+                .sum();
+
+        // 평점 평균 (소수점 첫째 자리 자름)
+        double averageReviewRating =
+                Math.round(((double)totalReviewRating / totalReviewCount) * 10)/10.0;
+
+        return GetProductDetailResponse.from(
+                product, reviewDtos, counts, totalReviewCount, averageReviewRating);
     }
 
     @Transactional(readOnly = true)
     public List<GetProductResponse> getAll(String keyword, String status, Pageable pageable){
 
-        ProductStatus productStatus = ProductStatus.from(status);
+        ProductStatus productStatus =
+                (status == null || status.isEmpty())? null : ProductStatus.from(status);
 
         Specification<Product> productSpecification = withCondition(keyword, productStatus);
 
@@ -94,6 +134,13 @@ public class ProductService {
             if (status != null) {
                 predicates.add(
                         cb.equal(root.get("status"), status)
+                );
+            }
+
+            // status가 DELETED가 아닌 경우, DELETED 제외
+            if (status != ProductStatus.DELETED) {
+                predicates.add(
+                        cb.notEqual(root.get("status"), ProductStatus.DELETED)
                 );
             }
 

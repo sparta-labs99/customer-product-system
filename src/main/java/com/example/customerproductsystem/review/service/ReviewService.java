@@ -2,6 +2,7 @@ package com.example.customerproductsystem.review.service;
 
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.product.entity.Product;
+import com.example.customerproductsystem.product.entity.ProductStatus;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.entity.Review;
 import com.example.customerproductsystem.review.entity.ReviewStatus;
@@ -36,7 +37,7 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetReviewResponse> getAll(String keyword, int rating, String status, Pageable pageable){
+    public List<GetReviewResponse> getAll(String keyword, Integer rating, String status, Pageable pageable){
 
         ReviewStatus reviewStatus = ReviewStatus.from(status);
 
@@ -85,6 +86,13 @@ public class ReviewService {
                 );
             }
 
+            // status가 DELETED가 아닌 경우, DELETED 제외
+            if (status != ReviewStatus.DELETED) {
+                predicates.add(
+                        cb.notEqual(root.get("status"), ProductStatus.DELETED)
+                );
+            }
+
             if (rating != null && rating > 0 && rating <= 5) {
                 predicates.add(cb.equal(root.get("rating"), rating));
             }
@@ -95,8 +103,6 @@ public class ReviewService {
 
     @Transactional
     public void delete(Long id) {
-
-        // 관리자 인가 확인
 
         Review review = reviewRepository.findById(id).orElseThrow(
                 ReviewNotFoundException::new);

@@ -3,10 +3,13 @@ package com.example.customerproductsystem.product.dto;
 import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
+import com.example.customerproductsystem.review.dto.GetReviewResponse;
+import com.example.customerproductsystem.review.dto.RatingCountDto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-public record GetProductResponse(
+public record GetProductDetailResponse(
         Long id,
         String name,
         Categories category,
@@ -14,13 +17,23 @@ public record GetProductResponse(
         ProductStatus status,
         String adminName,
         String adminEmail,
+        List<GetReviewResponse> reviewList,
+        List<RatingCountDto> reviewRatingCount,
+        long totalReviewCount,
+        double averageReviewRating,
         LocalDateTime createdAt,
         LocalDateTime updatedAt)
 {
 
-    public static GetProductResponse from(Product product) {
+    public static GetProductDetailResponse from(
+            Product product,
+            List<GetReviewResponse> reviewList,
+            List<RatingCountDto> reviewRatingCount,
+            long totalReviewCount,
+            double averageReviewRating
+    ) {
 
-        return new GetProductResponse(
+        return new GetProductDetailResponse(
                 product.getId(),
                 product.getName(),
                 product.getCategory(),
@@ -29,6 +42,10 @@ public record GetProductResponse(
                 product.getStatus(),
                 product.getAdmin().getName(),
                 product.getAdmin().getEmail(),
+                reviewList,
+                reviewRatingCount,
+                totalReviewCount,
+                averageReviewRating,
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

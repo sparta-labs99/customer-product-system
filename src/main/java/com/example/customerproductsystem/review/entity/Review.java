@@ -37,6 +37,7 @@ public class Review extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
+    @Enumerated(EnumType.STRING)
     private ReviewStatus status;
 
     public void updateStatus(ReviewStatus status) {

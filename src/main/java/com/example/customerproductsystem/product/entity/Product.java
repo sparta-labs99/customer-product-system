@@ -39,12 +39,13 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
 
-    public Product(String name, Categories category, int price, int stock, ProductStatus status) {
+    public Product(String name, Categories category, int price, int stock, ProductStatus status, Admin admin) {
         this.name = name;
         this.category = category;
         this.price = price;
         this.stock = stock;
         this.status = status;
+        this.admin = admin;
     }
 
     public void update(String name, Categories category, int price) {
