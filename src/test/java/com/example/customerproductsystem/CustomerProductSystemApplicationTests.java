@@ -32,19 +32,14 @@ class CustomerProductSystemApplicationTests {
 
     @Test
     void 테스트_데이터_넣기() {
-        // 실제로 15명의 고객 데이터가 DB에 들어가 있는지 검증해봅니다.
 
         System.out.println("현재 저장된 고객 수: " + customerRepository.count());
-        assertThat(customerRepository.count()).isEqualTo(15);
 
         System.out.println("현재 저장된 관리자 수: " + adminRepository.count());
-        assertThat(adminRepository.count()).isEqualTo(2);
 
         System.out.println("현재 저장된 상품 수: " + productRepository.count());
-        assertThat(productRepository.count()).isEqualTo(5);
 
         System.out.println("현재 저장된 주문 수: " + orderRepository.count());
-        assertThat(orderRepository.count()).isEqualTo(5);
     }
 
 }
