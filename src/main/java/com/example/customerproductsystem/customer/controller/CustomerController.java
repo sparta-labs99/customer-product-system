@@ -92,7 +92,7 @@ public class CustomerController {
      * 고객 다중 삭제 (선택 삭제)
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteCustomers(@RequestParam List<Long> ids) {
+    public ResponseEntity<Void> deleteCustomers(@RequestBody List<Long> ids) {
         customerService.deleteCustomers(ids);
         return ResponseEntity.noContent().build();
     }
