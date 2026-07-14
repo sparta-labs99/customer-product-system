@@ -85,6 +85,69 @@ public class Admin {
         );
     }
 
+    // 관리자 가입 신청 승인
+    public void approve() {
+        this.status = AdminStatus.ACTIVE;
+        this.approvedAt = LocalDateTime.now();
+        this.rejectedAt = null;
+        this.rejectionReason = null;
+    }
+
+    //관리자 가입 신청 거부
+    public void reject(String reason) {
+        this.status = AdminStatus.REJECTED;
+        this.rejectedAt = LocalDateTime.now();
+        this.rejectionReason = reason;
+        this.approvedAt = null;
+    }
+
+    // 최초 슈퍼 관리자 생성
+    public static Admin createSuperAdmin(
+            String name,
+            String email,
+            String encodePassword,
+            String phoneNumber
+    ) {
+        Admin admin = new Admin();
+
+        admin.name = name;
+        admin.email = email;
+        admin.password = encodePassword;
+        admin.phoneNumber = phoneNumber;
+        admin.role = AdminRole.SUPER_ADMIN;
+        admin.status = AdminStatus.ACTIVE;
+        admin.createdAt = LocalDateTime.now();
+        admin.approvedAt = LocalDateTime.now();
+
+        return admin;
+    }
+
+    // 관리자 정보 수정
+    public void updateProfile(
+            String name,
+            String email,
+            String phoneNumber
+    ) {
+        this.name = name;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
+    }
+
+    // 역할 변경
+    public void changeRole(AdminRole role) {
+        this.role = role;
+    }
+
+    // 운영 상태 변경
+    public void changeStatus(AdminStatus status) {
+        this.status = status;
+    }
+
+    public void changePassword(String encodedPassword) {
+        this.password = encodedPassword;
+    }
+
+
     public Long getId() {
         return id;
     }
