@@ -83,10 +83,7 @@
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
 
-        /**
-         * ⭐ 서버의 세션(Session)에서 권한 가져오기 (타임리프 인라인)
-         */
-        const isSuperAdmin = [[${session.loginAdmin != null and session.loginAdmin.role.name() == 'SUPER_ADMIN'}]];
+        const isSuperAdmin = [[${session.LOGIN_ADMIN != null and session.LOGIN_ADMIN.role.name() == 'SUPER_ADMIN'}]];
 
         /**
          * 1. DOM 요소 및 전역 상태 관리
