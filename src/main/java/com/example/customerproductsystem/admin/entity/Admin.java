@@ -1,5 +1,6 @@
 package com.example.customerproductsystem.admin.entity;
 
+import com.example.customerproductsystem.common.entity.BaseEntity;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
                 )
         }
 )
-public class Admin {
+public class Admin extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
