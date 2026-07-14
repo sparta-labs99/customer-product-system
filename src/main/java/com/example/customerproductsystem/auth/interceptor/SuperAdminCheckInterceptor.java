@@ -17,6 +17,13 @@ public class SuperAdminCheckInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
+        // /customers/** 경로로 요청이 왔을 때, PATCH와 DELETE가 아니라면(GET, POST, PUT 등) 슈퍼 관리자 검사 패스
+        String servletPath = request.getServletPath();
+        String method = request.getMethod();
+        if (servletPath.startsWith("/customers") && !(method.equals("PATCH") || method.equals("DELETE"))) {
+            return true;
+        }
+
         HttpSession session = request.getSession(false);
 
         if(session == null) {

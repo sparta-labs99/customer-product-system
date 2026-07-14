@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<body>
+
+<div th:fragment="customer-detail-modal" class="modal fade" id="customerDetailModal" tabindex="-1" aria-labelledby="customerDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="customerDetailModalLabel">
+                    <i class="fas fa-user-circle text-primary me-2"></i>고객 상세 정보
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+                    <!-- 왼쪽: 고객 기본 정보 -->
+                    <div class="col-md-7 border-end">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-address-card me-1"></i> 기본 정보</h6>
+                        <table class="table table-sm table-borderless align-middle">
+                            <tbody>
+                            <tr>
+                                <th style="width: 35%;" class="text-muted text-nowrap">이름</th>
+                                <td>
+                                    <span id="modalCustomerName" class="fw-bold view-mode">로딩중...</span>
+                                    <input type="text" id="editCustomerName" class="form-control form-control-sm edit-mode d-none">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted text-nowrap">이메일</th>
+                                <td>
+                                    <span id="modalCustomerEmail" class="view-mode">로딩중...</span>
+                                    <input type="email" id="editCustomerEmail" class="form-control form-control-sm edit-mode d-none">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted text-nowrap">전화번호</th>
+                                <td>
+                                    <span id="modalCustomerPhone" class="view-mode">로딩중...</span>
+                                    <input type="text" id="editCustomerPhone" class="form-control form-control-sm edit-mode d-none">
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted text-nowrap">가입일</th>
+                                <td>
+                                    <span id="modalCustomerCreatedAt">로딩중...</span> <!-- 가입일은 수정 불가 -->
+                                </td>
+                            </tr>
+                            <tr>
+                                <th class="text-muted text-nowrap align-middle">상태</th>
+                                <td class="align-middle">
+                                    <!-- 1. 탈퇴(INACTIVE) 회원용 고정 뱃지 -->
+                                    <span id="modalStatusBadgeInactive" class="badge bg-danger d-none px-3 py-2">
+                                            <i class="fas fa-user-slash me-1"></i>INACTIVE (삭제됨)
+                                        </span>
+
+                                    <!-- 2. 일반 관리자용 읽기 전용 -->
+                                    <span id="modalStatusBadgeFixed" class="badge d-none px-3 py-2"></span>
+
+                                    <!-- 3. 슈퍼 관리자용 상태 변경 드롭다운 버튼 -->
+                                    <div class="dropdown d-none" id="statusDropdownGroup">
+                                        <button class="btn btn-sm fw-bold dropdown-toggle" type="button" id="statusDropdownBtn" data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 120px; text-align: left;">
+                                            로딩중...
+                                        </button>
+                                        <ul class="dropdown-menu shadow-sm" aria-labelledby="statusDropdownBtn" style="min-width: 140px;">
+                                            <li>
+                                                <a class="dropdown-item status-change-btn fw-bold" href="#" data-value="ACTIVE">
+                                                    <i class="fas fa-check-circle text-success me-2"></i>ACTIVE
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item status-change-btn fw-bold" href="#" data-value="SUSPENDED">
+                                                    <i class="fas fa-ban text-secondary me-2"></i>SUSPENDED
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 오른쪽: 주문 통계 (기존 동일) -->
+                    <div class="col-md-5">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-shopping-bag me-1"></i> 주문 통계</h6>
+                        <div class="card bg-light border-0 shadow-sm mt-2">
+                            <div class="card-body text-center py-4">
+                                <div class="mb-3 border-bottom pb-3">
+                                    <span class="text-muted d-block mb-1">총 주문 수</span>
+                                    <h4 class="fw-bold text-dark mb-0"><span id="modalOrderCount">0</span> 건</h4>
+                                </div>
+                                <div>
+                                    <span class="text-muted d-block mb-1">총 구매 금액</span>
+                                    <h4 class="fw-bold text-primary mb-0"><span id="modalPurchaseAmount">0</span> 원</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light">
+                <!-- 🟢 읽기 모드일 때 보이는 버튼 -->
+                <button type="button" class="btn btn-warning view-mode" id="btnEditMode">수정하기</button>
+                <button type="button" class="btn btn-secondary view-mode" data-bs-dismiss="modal">닫기</button>
+
+                <!-- 🔴 수정 모드일 때 보이는 버튼 -->
+                <button type="button" class="btn btn-primary edit-mode d-none" id="btnSaveEdit">저장</button>
+                <button type="button" class="btn btn-secondary edit-mode d-none" id="btnCancelEdit">취소</button>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

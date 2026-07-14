@@ -16,24 +16,21 @@
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="row mb-3 align-items-center">
-
-                            <!-- 왼쪽: 순수 관측 영역 (갯수 선택 & 카운터) -->
+                            <!-- 왼쪽: 갯수 선택 & 카운터 -->
                             <div class="col-md-5 d-flex align-items-center gap-2">
                                 <select id="sizeSelect" class="form-select form-select-sm shadow-sm" style="width: 125px; cursor: pointer; height: 31px;">
                                     <option value="5">5개씩 보기</option>
                                     <option value="10" selected>10개씩 보기</option>
                                     <option value="25">25개씩 보기</option>
                                 </select>
-
                                 <div class="d-flex align-items-center bg-light border rounded px-2 shadow-sm text-secondary" style="height: 31px; font-size: 0.85rem;">
                                     <span class="fw-bold text-dark" id="totalCount">0 / 0</span>
                                     <span class="ms-1 text-muted">명</span>
                                 </div>
                             </div>
 
-                            <!-- 오른쪽: 액션 영역 (상태 필터 + 검색창 + 선택 삭제 버튼 맨 오른쪽 배치) -->
+                            <!-- 오른쪽: 검색조건 필터 및 삭제 버튼 -->
                             <div class="col-md-7 d-flex justify-content-end align-items-center gap-2">
-                                <!-- 1. 상태 필터 -->
                                 <select id="statusSelect" class="form-select form-select-sm shadow-sm" style="width: 110px; cursor: pointer; height: 31px;">
                                     <option value="">전체 상태</option>
                                     <option value="ACTIVE">활성</option>
@@ -41,226 +38,508 @@
                                     <option value="SUSPENDED">정지</option>
                                 </select>
 
-                                <!-- 2. 검색창 그룹 -->
                                 <div class="input-group input-group-sm shadow-sm" style="width: 260px; height: 31px;">
-                                    <input type="text" id="keywordInput" class="form-control" placeholder="이름 또는 이메일 검색" style="height: 31px;">
-                                    <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button" style="height: 31px;">
+                                    <input type="text" id="keywordInput" class="form-control" placeholder="이름 또는 이메일 검색">
+                                    <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button">
                                         <i class="fas fa-search me-1"></i> 검색
                                     </button>
                                 </div>
 
-                                <!-- 3. 맨 오른쪽에 위치한 선택 삭제 버튼 -->
                                 <button class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1" id="deleteCheckedBtn" type="button" style="height: 31px; font-size: 0.85rem;">
-                                    <i class="fas fa-trash-alt"></i> 선택삭제
+                                    <i class="fas fa-trash-alt"></i> 선택탈퇴
                                 </button>
                             </div>
 
                         </div>
-                        <table class="table table-bordered table-hover align-middle"> <!-- 💡 align-middle 추가로 세로 중앙 정렬 -->
+                        <table class="table table-bordered table-hover align-middle">
                             <thead>
                             <tr>
-                                <!-- 1. 맨 앞: 전체 선택 체크박스 -->
                                 <th class="text-center" style="width: 50px;">
                                     <input class="form-check-input" type="checkbox" id="selectAll">
                                 </th>
-                                <!-- ID 컬럼은 화면에서 제거했습니다 -->
-                                <th>이름</th>
-                                <th>이메일</th>
-                                <th>가입일</th>
+                                <th class="sortable" data-sort="name" style="cursor: pointer;">이름 <span class="sort-icon text-secondary" style="font-size: 0.8em;"></span></th>
+                                <th class="sortable" data-sort="email" style="cursor: pointer;">이메일 <span class="sort-icon text-secondary" style="font-size: 0.8em;"></span></th>
+                                <th class="sortable" data-sort="createdAt" style="cursor: pointer;">가입일 <span class="sort-icon text-primary" style="font-size: 0.8em;">▼</span></th>
                                 <th>상태</th>
                                 <th class="text-center" style="width: 100px;">관리</th>
                             </tr>
                             </thead>
-                            <tbody>
-                            <!-- JS가 이 곳에 데이터를 동적으로 채웁니다 -->
+                            <tbody id="customerTableBody">
                             </tbody>
                         </table>
+
+                        <!-- 페이지네이션 컨테이너 -->
+                        <ul class="pagination justify-content-center mt-4" id="paginationArea"></ul>
                     </div>
                 </div>
             </div>
         </main>
-
+        <div th:replace="~{customer/detail :: customer-detail-modal}"></div>
         <footer th:replace="common/fragments :: footer"></footer>
     </div>
 </div>
 
 <div th:replace="common/fragments :: common-scripts"></div>
-
-<script>
+<script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
-        // 1. DOM 요소 선택
-        const tbody = document.querySelector('table tbody');
-        const sizeSelect = document.getElementById('sizeSelect');
-        const statusSelect = document.getElementById('statusSelect');
-        const keywordInput = document.getElementById('keywordInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const totalCountSpan = document.getElementById('totalCount');
-        const deleteCheckedBtn = document.getElementById('deleteCheckedBtn');
 
-        // 페이지네이션 영역 생성 및 선택 로직 간소화
-        let paginationArea = document.querySelector('.pagination');
-        if (!paginationArea) {
-            paginationArea = document.createElement('ul');
-            paginationArea.className = 'pagination justify-content-center mt-4';
-            document.querySelector('.card-body').appendChild(paginationArea);
-        }
+        /**
+         * ⭐ 서버의 세션(Session)에서 권한 가져오기 (타임리프 인라인)
+         */
+        const isSuperAdmin = [[${session.loginAdmin != null and session.loginAdmin.role.name() == 'SUPER_ADMIN'}]];
 
-        // 2. 메인 데이터 로드 함수
-        window.loadCustomers = function(page = 1) {
-            // 화면에 있는 검색 조건들을 바로 URL 파라미터로 변환
-            const params = new URLSearchParams({
-                page: page,
-                size: sizeSelect.value // 하드코딩(10) 대신 갯수 셀렉트 박스 값 사용
-            });
-
-            if (keywordInput.value.trim()) params.append('keyword', keywordInput.value.trim());
-            if (statusSelect.value) params.append('status', statusSelect.value);
-
-            // 정렬 조건이 화면에 추가될 경우를 대비한 방어 코드
-            const sortSelect = document.getElementById('sortBy');
-            const directionSelect = document.getElementById('direction');
-            if (sortSelect?.value) params.append('sortBy', sortSelect.value);
-            if (directionSelect?.value) params.append('direction', directionSelect.value);
-
-            // API 통신
-            fetch(`/customers?${params.toString()}`)
-                .then(res => {
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json();
-                })
-                .then(data => {
-                    totalCountSpan.textContent = `${data.numberOfElements} / ${data.totalElements}`;
-                    renderTable(data.content);
-                    renderPagination(data.totalPages, data.number);
-                })
-                .catch(error => {
-                    console.error('Error fetching customers:', error);
-                    alert('데이터를 불러오는데 실패했습니다.');
-                });
+        /**
+         * 1. DOM 요소 및 전역 상태 관리
+         */
+        const elements = {
+            tbody: document.getElementById('customerTableBody'),
+            sizeSelect: document.getElementById('sizeSelect'),
+            statusSelect: document.getElementById('statusSelect'),
+            keywordInput: document.getElementById('keywordInput'),
+            searchBtn: document.getElementById('searchBtn'),
+            totalCountSpan: document.getElementById('totalCount'),
+            deleteCheckedBtn: document.getElementById('deleteCheckedBtn'),
+            selectAll: document.getElementById('selectAll'),
+            paginationArea: document.getElementById('paginationArea'),
+            sortableHeaders: document.querySelectorAll('th.sortable')
         };
 
-        // 3. 테이블 렌더링 함수
-        function renderTable(customers) {
+        let state = {
+            currentSortBy: 'createdAt',
+            currentDirection: 'desc',
+            currentPage: 1
+        };
+
+        /**
+         * util: XSS 방지용 HTML 이스케이프
+         */
+        const escapeHtml = (unsafe) => {
+            if (unsafe == null) return '';
+            return unsafe.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
+
+        /**
+         * util: 날짜 포맷 변환
+         */
+        const formatDate = (isoString) => {
+            if (!isoString) return '-';
+            const date = new Date(isoString);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d} ${h}:${min}`;
+        };
+
+        /**
+         * util: 숫자 콤마 포맷팅
+         */
+        const formatNumber = (number) => {
+            return new Intl.NumberFormat('ko-KR').format(number);
+        };
+
+        /**
+         * 고객 목록 API 조회
+         */
+        const loadCustomers = (page = 1) => {
+            state.currentPage = page; // 현재 페이지 상태 저장
+
+            const params = new URLSearchParams({
+                page: page,
+                size: elements.sizeSelect.value,
+                sortBy: state.currentSortBy,
+                direction: state.currentDirection
+            });
+
+            if (elements.keywordInput.value.trim()) params.append('keyword', elements.keywordInput.value.trim());
+            if (elements.statusSelect.value) params.append('status', elements.statusSelect.value);
+
+            fetch(`/customers?${params.toString()}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('데이터 조회 실패');
+                    return res.json();
+                }).then(data => {
+                elements.totalCountSpan.textContent = `${data.numberOfElements} / ${data.totalElements}`;
+                renderTable(data.content);
+                renderPagination(data.totalPages, data.number);
+                syncSelectAll();
+            }).catch(error => {
+                console.error('Fetch Error:', error);
+                alert('데이터를 불러오는데 실패했습니다.');
+            });
+        };
+
+        /**
+         * 테이블 렌더링
+         */
+        const renderTable = (customers) => {
             if (!customers || customers.length === 0) {
-                // 💡 컬럼이 7개로 늘어났으므로 colspan을 7로 변경
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center">데이터가 없습니다.</td></tr>`;
+                elements.tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">데이터가 없습니다.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = customers.map(customer => {
+            elements.tbody.innerHTML = customers.map(customer => {
                 const badgeClass = customer.status === 'ACTIVE' ? 'bg-success' :
                     customer.status === 'INACTIVE' ? 'bg-danger' : 'bg-secondary';
 
                 return `
-                <tr data-id="${customer.id}">
+                <tr>
                     <td class="text-center">
                         <input class="form-check-input row-checkbox" type="checkbox" value="${customer.id}">
                     </td>
-                    <td>${customer.name}</td>
-                    <td>${customer.email}</td>
-                    <td>${customer.createdAt}</td>
-                    <td><span class="badge ${badgeClass}">${customer.status}</span></td>
+                    <td>${escapeHtml(customer.name)}</td>
+                    <td>${escapeHtml(customer.email)}</td>
+                    <td>${formatDate(customer.createdAt)}</td>
+                    <td><span class="badge ${badgeClass}">${escapeHtml(customer.status)}</span></td>
                     <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary" onclick="viewCustomer(${customer.id})">
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-detail" data-id="${customer.id}">
                             상세
                         </button>
                     </td>
                 </tr>
             `;
             }).join('');
-        }
+        };
 
-
-        // 4. 페이지네이션 렌더링 함수
-        function renderPagination(totalPages, number) {
+        /**
+         * 페이지네이션 렌더링
+         */
+        const renderPagination = (totalPages, number) => {
             if (totalPages <= 0) {
-                paginationArea.innerHTML = '';
+                elements.paginationArea.innerHTML = '';
                 return;
             }
 
-            const currentPage = number + 1; // 스프링 API(0-based)를 프론트(1-based)로 변환
+            const currentPage = number + 1;
+            const blockSize = 5;
+            const startPage = Math.floor((currentPage - 1) / blockSize) * blockSize + 1;
+            let endPage = startPage + blockSize - 1;
+            if (endPage > totalPages) endPage = totalPages;
+
             let html = '';
 
-            // 이전 버튼
             html += `
-            <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="javascript:void(0)" onclick="if(${currentPage} > 1) window.loadCustomers(${currentPage - 1});">이전</a>
-            </li>
-        `;
+            <li class="page-item ${startPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${startPage - 1}">이전</a>
+            </li>`;
 
-            // 페이지 번호
-            for (let i = 1; i <= totalPages; i++) {
+            for (let i = startPage; i <= endPage; i++) {
                 html += `
                 <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="javascript:void(0)" onclick="window.loadCustomers(${i});">${i}</a>
-                </li>
-            `;
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>`;
             }
 
-            // 다음 버튼
             html += `
-            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="javascript:void(0)" onclick="if(${currentPage} < ${totalPages}) window.loadCustomers(${currentPage + 1});">다음</a>
-            </li>
-        `;
+            <li class="page-item ${endPage >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${endPage + 1}">다음</a>
+            </li>`;
 
-            paginationArea.innerHTML = html;
-        }
-
-        // 5. 이벤트 리스너 등록 (동작 트리거 모음)
-        searchBtn.addEventListener('click', () => loadCustomers(1));
-        keywordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') loadCustomers(1);
-        });
-        statusSelect.addEventListener('change', () => loadCustomers(1));
-        sizeSelect.addEventListener('change', () => loadCustomers(1)); // 갯수 변경 시 즉시 로드
-
-        // 6. 초기 데이터 로딩
-        loadCustomers(1);
-
-        // 상세 팝업 카드 조회
-        window.viewCustomer = function(id) {
-            alert("선택하신 고객의 숨겨진 ID는 " + id + "번 입니다!");
-            // 예: window.location.href = `/view/customers/${id}`;
+            elements.paginationArea.innerHTML = html;
         };
 
-        // 체크박스 선택
-        const selectAllCheckbox = document.getElementById('selectAll');
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function() {
-                const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-                rowCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+        /**
+         * 전체선택 체크박스 상태 동기화
+         */
+        const syncSelectAll = () => {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+
+            if (checkboxes.length === 0) {
+                elements.selectAll.checked = false;
+            } else {
+                elements.selectAll.checked = (checkboxes.length === checkedBoxes.length);
+            }
+        };
+
+        /**
+         * 이벤트 리스너 세팅
+         */
+        elements.searchBtn.addEventListener('click', () => loadCustomers(1));
+        elements.keywordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadCustomers(1); });
+        elements.statusSelect.addEventListener('change', () => loadCustomers(1));
+        elements.sizeSelect.addEventListener('change', () => loadCustomers(1));
+
+        elements.sortableHeaders.forEach(th => {
+            th.addEventListener('click', function() {
+                const clickedSort = this.getAttribute('data-sort');
+
+                if (state.currentSortBy === clickedSort) {
+                    state.currentDirection = state.currentDirection === 'desc' ? 'asc' : 'desc';
+                } else {
+                    state.currentSortBy = clickedSort;
+                    state.currentDirection = 'desc';
+                }
+
+                elements.sortableHeaders.forEach(header => {
+                    const iconSpan = header.querySelector('.sort-icon');
+                    iconSpan.textContent = '';
+                    iconSpan.className = 'sort-icon text-secondary';
+                });
+
+                const currentIconSpan = this.querySelector('.sort-icon');
+                currentIconSpan.textContent = state.currentDirection === 'desc' ? '▼' : '▲';
+                currentIconSpan.className = 'sort-icon text-primary';
+
+                loadCustomers(1);
+            });
+        });
+
+        elements.paginationArea.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = e.target;
+            if (target.classList.contains('page-link')) {
+                const parentLi = target.closest('.page-item');
+                if (!parentLi.classList.contains('disabled') && !parentLi.classList.contains('active')) {
+                    const page = parseInt(target.getAttribute('data-page'), 10);
+                    loadCustomers(page);
+                }
+            }
+        });
+
+        // ================= 모달 및 상세 로직 ================= //
+
+        let currentModalCustomerId = null;
+
+        const toggleModalMode = (isEdit) => {
+            document.querySelectorAll('.view-mode').forEach(el => el.classList.toggle('d-none', isEdit));
+            document.querySelectorAll('.edit-mode').forEach(el => el.classList.toggle('d-none', !isEdit));
+        };
+
+        // 🔍 [상세] 버튼 클릭 이벤트
+        elements.tbody.addEventListener('click', function(e) {
+            const detailBtn = e.target.closest('.btn-detail');
+            if (detailBtn) {
+                e.preventDefault();
+                const id = detailBtn.getAttribute('data-id');
+                currentModalCustomerId = id;
+
+                fetch(`/customers/${id}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('고객 정보를 불러올 수 없습니다.');
+                        return res.json();
+                    }).then(data => {
+                    // 1. 읽기 모드 바인딩
+                    document.getElementById('modalCustomerName').textContent = data.name;
+                    document.getElementById('modalCustomerEmail').textContent = data.email;
+                    document.getElementById('modalCustomerPhone').textContent = data.phoneNumber || '미등록';
+                    document.getElementById('modalCustomerCreatedAt').textContent = formatDate(data.createdAt);
+                    document.getElementById('modalOrderCount').textContent = formatNumber(data.totalOrderCount);
+                    document.getElementById('modalPurchaseAmount').textContent = formatNumber(data.totalPurchaseAmount);
+
+                    // ⭐ 권한에 따른 상태 UI 처리
+                    const inactiveBadge = document.getElementById('modalStatusBadgeInactive');
+                    const dropdownGroup = document.getElementById('statusDropdownGroup');
+                    const dropdownBtn = document.getElementById('statusDropdownBtn');
+                    const fixedBadge = document.getElementById('modalStatusBadgeFixed');
+
+                    // 일단 모두 숨김 처리로 리셋
+                    if(inactiveBadge) inactiveBadge.classList.add('d-none');
+                    if(dropdownGroup) dropdownGroup.classList.add('d-none');
+                    if(fixedBadge) fixedBadge.classList.add('d-none');
+
+                    if (data.status === 'INACTIVE') {
+                        // 1. 탈퇴 회원이면 권한 무관 빨간 뱃지 표시
+                        if(inactiveBadge) inactiveBadge.classList.remove('d-none');
+                    } else {
+                        // 2. 활성/정지 회원일 때 권한 분기
+                        if (isSuperAdmin) {
+                            // [슈퍼 관리자] 상태 변경 드롭다운 표시
+                            if(dropdownGroup) dropdownGroup.classList.remove('d-none');
+
+                            if (data.status === 'ACTIVE') {
+                                dropdownBtn.className = 'btn btn-sm btn-success dropdown-toggle fw-bold';
+                                dropdownBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ACTIVE';
+                            } else if (data.status === 'SUSPENDED') {
+                                dropdownBtn.className = 'btn btn-sm btn-secondary dropdown-toggle fw-bold';
+                                dropdownBtn.innerHTML = '<i class="fas fa-ban me-1"></i> SUSPENDED';
+                            }
+                        } else {
+                            // [일반 관리자] 수정 불가능한 고정 뱃지 표시
+                            if(fixedBadge) {
+                                fixedBadge.classList.remove('d-none');
+                                if (data.status === 'ACTIVE') {
+                                    fixedBadge.className = 'badge bg-success px-3 py-2';
+                                    fixedBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i> ACTIVE';
+                                } else if (data.status === 'SUSPENDED') {
+                                    fixedBadge.className = 'badge bg-secondary px-3 py-2';
+                                    fixedBadge.innerHTML = '<i class="fas fa-ban me-1"></i> SUSPENDED';
+                                }
+                            }
+                        }
+                    }
+
+                    // 2. 수정 모드(input) 초기값 바인딩
+                    document.getElementById('editCustomerName').value = data.name;
+                    document.getElementById('editCustomerEmail').value = data.email;
+                    document.getElementById('editCustomerPhone').value = data.phoneNumber || '';
+
+                    toggleModalMode(false);
+
+                    // 3. 모달 띄우기
+                    const modalElement = document.getElementById('customerDetailModal');
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }).catch(error => { alert(error.message); });
+            }
+        });
+
+        // 🛠️ [수정하기] 버튼 클릭
+        document.getElementById('btnEditMode').addEventListener('click', () => {
+            const inactiveBadge = document.getElementById('modalStatusBadgeInactive');
+            const isInactive = inactiveBadge && !inactiveBadge.classList.contains('d-none');
+
+            if (isInactive) {
+                alert('탈퇴(삭제)된 회원은 정보를 수정할 수 없습니다.');
+                return;
+            }
+            toggleModalMode(true);
+        });
+
+        // 🛠️ [취소]
+        document.getElementById('btnCancelEdit').addEventListener('click', () => {
+            toggleModalMode(false);
+        });
+
+        // 🛠️ [기본 정보 저장] 버튼 클릭 (PUT 단독 처리)
+        document.getElementById('btnSaveEdit').addEventListener('click', () => {
+            if (!confirm('수정된 기본 정보를 저장하시겠습니까?')) return;
+
+            const name = document.getElementById('editCustomerName').value;
+            const email = document.getElementById('editCustomerEmail').value;
+            const phoneNumber = document.getElementById('editCustomerPhone').value;
+
+            fetch(`/customers/${currentModalCustomerId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, email, phoneNumber })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("수정 중 오류가 발생했습니다.");
+                    alert('기본 정보가 수정되었습니다.');
+
+                    loadCustomers(state.currentPage);
+
+                    document.getElementById('modalCustomerName').textContent = name;
+                    document.getElementById('modalCustomerEmail').textContent = email;
+                    document.getElementById('modalCustomerPhone').textContent = phoneNumber || '미등록';
+
+                    toggleModalMode(false);
+                })
+                .catch(error => { alert(error.message); });
+        });
+
+        // 🛠️ [상태 변경] 드롭다운 클릭 이벤트 (PATCH 단독 처리 - 슈퍼 관리자만 동작)
+        document.querySelectorAll('.status-change-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                const newStatus = this.getAttribute('data-value');
+                const dropdownBtn = document.getElementById('statusDropdownBtn');
+                const currentStatus = dropdownBtn.textContent.includes('ACTIVE') ? 'ACTIVE' : 'SUSPENDED';
+
+                if (newStatus === currentStatus) return;
+
+                const statusText = newStatus === 'ACTIVE' ? '활성' : '정지';
+
+                if (!confirm(`고객 상태를 '${statusText}'(으)로 변경하시겠습니까?`)) return;
+
+                fetch(`/customers/${currentModalCustomerId}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                })
+                    .then(res => {
+                        if (!res.ok) throw new Error("상태 변경에 실패했습니다. 권한을 확인해주세요.");
+                        alert('고객 상태가 변경되었습니다.');
+
+                        if (newStatus === 'ACTIVE') {
+                            dropdownBtn.className = 'btn btn-sm btn-success dropdown-toggle fw-bold';
+                            dropdownBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ACTIVE';
+                        } else {
+                            dropdownBtn.className = 'btn btn-sm btn-secondary dropdown-toggle fw-bold';
+                            dropdownBtn.innerHTML = '<i class="fas fa-ban me-1"></i> SUSPENDED';
+                        }
+
+                        loadCustomers(state.currentPage);
+                    })
+                    .catch(error => {
+                        alert(error.message);
+                    });
+            });
+        });
+
+        // 🛠️ [모달 닫힘] 초기화 로직
+        const modalElement = document.getElementById('customerDetailModal');
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                document.activeElement.blur(); // 포커스 꼬임 방지
+                toggleModalMode(false);
+                currentModalCustomerId = null;
+
+                document.getElementById('modalCustomerName').textContent = '로딩중...';
+                document.getElementById('modalCustomerEmail').textContent = '로딩중...';
+                document.getElementById('modalCustomerPhone').textContent = '로딩중...';
+
+                // 상태 관련 뱃지/버튼들 텍스트 초기화
+                const fixedBadge = document.getElementById('modalStatusBadgeFixed');
+                const dropdownBtn = document.getElementById('statusDropdownBtn');
+                if(fixedBadge) fixedBadge.innerHTML = '';
+                if(dropdownBtn) dropdownBtn.innerHTML = '로딩중...';
+
+                document.getElementById('modalOrderCount').textContent = '0';
+                document.getElementById('modalPurchaseAmount').textContent = '0';
             });
         }
 
+        elements.tbody.addEventListener('change', function(e) {
+            if (e.target.classList.contains('row-checkbox')) syncSelectAll();
+        });
 
-        if (deleteCheckedBtn) {
-            deleteCheckedBtn.addEventListener('click', function() {
-                // 1. 테이블 내에 체크된 모든 체크박스 가져오기
+        if (elements.selectAll) {
+            elements.selectAll.addEventListener('change', function() {
+                const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+                rowCheckboxes.forEach(cb => cb.checked = elements.selectAll.checked);
+            });
+        }
+
+        // 🛠️ [다중 삭제 이벤트]
+        if (elements.deleteCheckedBtn) {
+            elements.deleteCheckedBtn.addEventListener('click', function() {
                 const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
 
-                // 2. 아무것도 체크 안 했을 때 방어 코드
                 if (checkedBoxes.length === 0) {
                     alert('삭제할 고객을 선택해 주세요.');
                     return;
                 }
 
-                // 3. 체크박스 value에 숨겨둔 고객 ID들만 쏙쏙 뽑아서 배열로 만들기
-                const idsToDelete = Array.from(checkedBoxes).map(cb => cb.value);
+                const idsToDelete = Array.from(checkedBoxes).map(cb => parseInt(cb.value, 10));
 
-                // 4. 잘 작동하는지 얼럿창으로 데이터 확인하기 (깡통 기능)
-                if (confirm(`선택한 ${checkedBoxes.length}명의 고객을 정말 삭제하시겠습니까?\n(선택된 고객 ID: ${idsToDelete.join(', ')})`)) {
-
-                    alert(`[깡통 작동 완료]\n백엔드로 ID [${idsToDelete.join(', ')}] 번의 단건 삭제를 요청하는 척 화면을 갱신합니다.`);
-
-                    // 5. 성공했다고 치고 화면 상단 전체 선택 체크박스 해제 및 데이터 새로고침
-                    const selectAllCheckbox = document.getElementById('selectAll');
-                    if (selectAllCheckbox) selectAllCheckbox.checked = false;
-
-                    loadCustomers(1); // 데이터 리로드
+                if (confirm(`선택한 ${checkedBoxes.length}명의 고객을 정말 삭제하시겠습니까?`)) {
+                    fetch('/customers', {
+                        method: 'DELETE',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(idsToDelete)
+                    }).then(res => {
+                        if (!res.ok) throw new Error('삭제 권한이 없거나 실패했습니다.');
+                        alert('선택한 고객이 삭제되었습니다.');
+                        elements.selectAll.checked = false;
+                        loadCustomers(state.currentPage);
+                    }).catch(error => {
+                        console.error('Delete Error:', error);
+                        alert(error.message);
+                    });
                 }
             });
         }
+
+        // 3. 초기 데이터 로딩
+        loadCustomers(1);
     });
 </script>
 </body>

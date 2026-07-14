@@ -20,14 +20,13 @@ public class WebConfig implements WebMvcConfigurer {
         // 로그인 인증 인터셉터
         registry.addInterceptor(loginCheckInterceptor)
                 .order(1)
-                .addPathPatterns("/admins/**")
+                .addPathPatterns("/admins/**", "/customers", "/customers/**")
                 .excludePathPatterns("/signup", "/login");
 
         // 슈퍼 관리자 권한 인터셉터
         registry.addInterceptor(superAdminCheckInterceptor)
                 .order(2)
-                .addPathPatterns("/admins/**")
-                .excludePathPatterns(
+                .addPathPatterns("/admins/**", "/customers", "/customers/**")                 .excludePathPatterns(
                         "/signup",
                         "/login",
                         "/logout",
