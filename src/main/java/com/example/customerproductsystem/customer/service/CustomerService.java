@@ -7,6 +7,7 @@ import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.entity.CustomerStatus;
 import com.example.customerproductsystem.customer.error.CustomerException;
 import com.example.customerproductsystem.customer.repository.CustomerRepository;
+import com.example.customerproductsystem.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,13 +15,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 
 @Service
 @RequiredArgsConstructor
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
-    private final PasswordEncoder passwordEncoder; // 추후 Security 적용 시 주석 해제
+    private final PasswordEncoder passwordEncoder;
+    private final OrderRepository orderRepository;
 
     /**
      * 고객 등록
@@ -61,13 +65,14 @@ public class CustomerService {
      * 고객 단건 상세 조회
      */
     @Transactional(readOnly = true)
-    public CreateCustomerResponse getCustomerDetail(Long id) {
-        // 1. ID로 고객 엔티티 조회 (없으면 예외 발생)
+    public CustomerDetailResponse getCustomerDetail(Long id) {
         Customer customer = customerRepository.findById(id)
-                .orElseThrow(() -> new CustomerException.NotFound(id)); // 문법 확인!
+                .orElseThrow(() -> new CustomerException.NotFound(id));
 
-        // 2. 조회된 엔티티를 CreateCustomerResponse DTO로 변환하여 반환
-        return new CreateCustomerResponse(customer);
+        long totalOrderCount = orderRepository.countByCustomerId(id);
+        long totalPurchaseAmount = orderRepository.sumTotalPriceByCustomerId(id);
+
+        return new CustomerDetailResponse(customer, totalOrderCount, totalPurchaseAmount);
     }
 
 
@@ -121,6 +126,16 @@ public class CustomerService {
 
         // 3. 변경 완료된 상태를 응답 DTO에 담아서 반환
         return new UpdateCustomerResponse(customer);
+    }
+
+    /**
+     * 고객 다중 삭제 (선택 삭제)
+     */
+    @Transactional
+    public void deleteCustomers(List<Long> ids) {
+        for (Long id : ids) {
+            deleteCustomer(id); // 기존에 만들어둔 단건 삭제 로직 재사용
+        }
     }
 
     /**

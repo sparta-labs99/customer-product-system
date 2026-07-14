@@ -4,14 +4,12 @@ import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.customer.repository.CustomerRepository;
 import com.example.customerproductsystem.order.repository.OrderRepository;
 import com.example.customerproductsystem.product.repository.ProductRepository;
-import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 @Transactional

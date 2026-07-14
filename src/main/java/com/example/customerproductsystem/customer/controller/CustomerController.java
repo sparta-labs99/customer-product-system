@@ -12,6 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/customers")
 @RequiredArgsConstructor
@@ -59,8 +61,8 @@ public class CustomerController {
      * 고객 상세 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CreateCustomerResponse> getCustomerDetail(@PathVariable Long id) {
-        CreateCustomerResponse response = customerService.getCustomerDetail(id);
+    public ResponseEntity<CustomerDetailResponse> getCustomerDetail(@PathVariable Long id) {
+        CustomerDetailResponse response = customerService.getCustomerDetail(id);
         return ResponseEntity.ok(response);
     }
 
@@ -84,6 +86,15 @@ public class CustomerController {
             @Valid @RequestBody UpdateCustomerStatusRequest request) {
         UpdateCustomerResponse response = customerService.updateCustomerStatus(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * 고객 다중 삭제 (선택 삭제)
+     */
+    @DeleteMapping
+    public ResponseEntity<Void> deleteCustomers(@RequestParam List<Long> ids) {
+        customerService.deleteCustomers(ids);
+        return ResponseEntity.noContent().build();
     }
 
     /**
