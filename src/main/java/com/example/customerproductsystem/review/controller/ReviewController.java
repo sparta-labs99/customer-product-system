@@ -20,6 +20,7 @@ public class ReviewController {
     public ResponseEntity<GetReviewResponse> getReview(
             @PathVariable Long id
     ) {
+
         GetReviewResponse result = reviewService.getOne(id);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -27,11 +28,12 @@ public class ReviewController {
 
     @GetMapping("reviews")
     public ResponseEntity<List<GetReviewResponse>> getAllReviews(
-            @RequestParam String keyword,
-            @RequestParam int rating,
-            @RequestParam String status,
-            Pageable pageable
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String status,
+            Pageable pageable // / url에서 자동으로 page, size, sort 값을 저장
     ) {
+
         List<GetReviewResponse> result = reviewService.getAll(keyword, rating, status, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
@@ -41,6 +43,7 @@ public class ReviewController {
     public ResponseEntity<Void> deleteReview(
             @PathVariable Long id
     ) {
+
         reviewService.delete(id);
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
