@@ -22,6 +22,7 @@ public class ProductController {
     public ResponseEntity<CreateProductResponse> createProduct (
             @Valid @RequestBody CreateProductRequest request) {
 
+        // 상품 등록
         CreateProductResponse result = productService.create(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(result);

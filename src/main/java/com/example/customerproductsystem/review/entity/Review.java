@@ -1,8 +1,8 @@
 package com.example.customerproductsystem.review.entity;
 
 import com.example.customerproductsystem.common.entity.BaseEntity;
+import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.order.entity.Order;
-import com.example.customerproductsystem.order.tempFile.Customer;
 import com.example.customerproductsystem.product.entity.Product;
 import jakarta.persistence.*;
 import lombok.AccessLevel;

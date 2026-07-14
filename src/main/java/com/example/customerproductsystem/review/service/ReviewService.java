@@ -1,6 +1,6 @@
 package com.example.customerproductsystem.review.service;
 
-import com.example.customerproductsystem.order.tempFile.Customer;
+import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.entity.Review;

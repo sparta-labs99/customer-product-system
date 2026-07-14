@@ -60,8 +60,12 @@ public class Product extends BaseEntity {
             throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
         }
 
-        if (this.status != ProductStatus.OUT_OF_STOCK && stock == 0) {
+        if (stock == 0) {
             this.status = ProductStatus.OUT_OF_STOCK;
+        }
+        else if (this.status != ProductStatus.DISCONTINUED) {
+            // stock > 0
+            this.status = ProductStatus.FOR_SALE;
         }
     }
 
