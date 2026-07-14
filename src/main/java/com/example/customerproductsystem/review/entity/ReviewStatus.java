@@ -5,8 +5,8 @@ import com.example.customerproductsystem.review.error.InvalidReviewStatusExcepti
 import java.util.Arrays;
 
 public enum ReviewStatus {
-    NORMAL,
-    DELETED;
+    NORMAL, // 일반
+    DELETED; // 삭제됨
 
     public static ReviewStatus from(String value) {
         return Arrays.stream(values())

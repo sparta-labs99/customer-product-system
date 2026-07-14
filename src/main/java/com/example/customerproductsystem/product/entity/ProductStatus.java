@@ -5,10 +5,10 @@ import com.example.customerproductsystem.product.error.InvalidStatusException;
 import java.util.Arrays;
 
 public enum ProductStatus{
-    FOR_SALE,
-    OUT_OF_STOCK,
-    DISCONTINUED,
-    DELETED;
+    FOR_SALE, // 판매 중
+    OUT_OF_STOCK, // 품절
+    DISCONTINUED, // 단종
+    DELETED; // 관리자에 의해 삭제됨
 
     public static ProductStatus from(String value) {
         return Arrays.stream(values())

@@ -12,6 +12,6 @@ public class InvalidStatusException extends CustomException {
 
     public InvalidStatusException() {
 
-        super(HttpStatus.BAD_REQUEST, "유효하지 않은 카테고리 요청입니다.");
+        super(HttpStatus.BAD_REQUEST, "유효하지 않은 상태 요청입니다.");
     }
 }
