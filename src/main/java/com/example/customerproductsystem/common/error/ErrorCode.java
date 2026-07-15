@@ -14,13 +14,6 @@ public enum ErrorCode {
     UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "C003", "인증이 필요합니다."),
     FORBIDDEN(HttpStatus.FORBIDDEN, "C004", "권한이 없습니다."),
 
- 
-
-    // Customer 도메인 에러
-    CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUS_001", "존재하지 않는 고객입니다."),
-    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "CUS_002", "이미 존재하는 이메일입니다."),
-    ALREADY_INACTIVE_CUSTOMER(HttpStatus.BAD_REQUEST, "CUS_003", "이미 탈퇴 처리된 고객입니다."),
-
     // Admin 도메인 에러
     ADMIN_NOT_FOUND(HttpStatus.NOT_FOUND, "ADM_001", "관리자를 찾을 수 없습니다."),
     ADMIN_DUPLICATE_EMAIL(HttpStatus.CONFLICT, "ADM_002", "이미 존재하는 관리자 이메일입니다."),
@@ -41,8 +34,13 @@ public enum ErrorCode {
     ADMIN_INVALID_STATUS_CHANGE(HttpStatus.BAD_REQUEST, "ADM_020", "승인 대기와 거부 상태는 상태 변경 API로 설정할 수 없습니다."),
     ADMIN_LAST_ACTIVE_SUPER_ADMIN_ROLE_CHANGE(HttpStatus.BAD_REQUEST, "ADM_021", "마지막 활성 슈퍼 관리자의 역할은 변경할 수 없습니다."),
     ADMIN_INVALID_SORT(HttpStatus.BAD_REQUEST, "ADM_022", "지원하지 않는 정렬 기준입니다."),
-    ADMIN_INVALID_SORT_DIRECTION(HttpStatus.BAD_REQUEST, "ADM_023", "정렬 방향은 asc 또는 desc만 사용할 수 있습니다."
-    );
+    ADMIN_INVALID_SORT_DIRECTION(HttpStatus.BAD_REQUEST, "ADM_023", "정렬 방향은 asc 또는 desc만 사용할 수 있습니다."),
+
+    // Customer 도메인 에러
+    CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUS_001", "존재하지 않는 고객입니다."),
+    EMAIL_DUPLICATION(HttpStatus.CONFLICT, "CUS_002", "이미 존재하는 이메일입니다."),
+    ALREADY_INACTIVE_CUSTOMER(HttpStatus.BAD_REQUEST, "CUS_003", "이미 탈퇴 처리된 고객입니다."),
+
     // Product 도메인 에러
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRO_001", "존재하지 않는 상품입니다."),
     INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "PRO_002", "유효하지 않은 카테고리 요청입니다."),
