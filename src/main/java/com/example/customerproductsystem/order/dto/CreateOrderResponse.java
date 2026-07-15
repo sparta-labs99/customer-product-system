@@ -1,9 +1,13 @@
 package com.example.customerproductsystem.order.dto;
 
+import com.example.customerproductsystem.order.entity.Order;
 import com.example.customerproductsystem.order.entity.OrderStatus;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 @Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CreateOrderResponse {
 
     private final Long id;
@@ -14,14 +18,17 @@ public class CreateOrderResponse {
     private final Long totalPrice;
     private final OrderStatus status;
 
-    public CreateOrderResponse(Long id, String orderNumber, String customerName, String productName, Integer quantity, Long totalPrice, OrderStatus status) {
-        this.id = id;
-        this.orderNumber = orderNumber;
-        this.customerName = customerName;
-        this.productName = productName;
-        this.quantity = quantity;
-        this.totalPrice = totalPrice;
-        this.status = status;
-    }
 
+
+    public static CreateOrderResponse from(Order order) {
+        return new CreateOrderResponse(
+                order.getId(),
+                order.getOrderNumber(),
+                order.getCustomer().getName(),
+                order.getProduct().getName(),
+                order.getQuantity(),
+                order.getTotalPrice(),
+                order.getStatus()
+        );
+    }
 }

@@ -36,6 +36,6 @@ INSERT INTO orders (order_number, customer_id, product_id, admin_id, quantity, t
                                                                                                                                 ('ORD-20260713-0002', 2, 2, NULL, 2, 278000, 'SHIPPING', NOW(), NOW()),
                                                                                                                                 ('ORD-20260713-0003', 3, 3, NULL, 1, 30000, 'PENDING', NOW(), NOW()),
                                                                                                                                 ('ORD-20260713-0004', 4, 1, 1, 1, 1200000, 'CANCELED', NOW(), NOW()),
-                                                                                                                                ('ORD-20260713-0005', 5, 5, NULL, 3, 45000, 'PENDING', NOW(), NOW()); -- <-- 세미콜론(;) 추가 완료
+                                                                                                                                ('ORD-20260713-0005', 5, 5, NULL, 3, 45000, 'PENDING', NOW(), NOW());
 
 COMMIT;
