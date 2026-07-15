@@ -18,4 +18,6 @@ public interface AdminRepository extends JpaRepository<Admin, Long>, JpaSpecific
     boolean existsByRole(AdminRole role);
 
     long countByRoleAndStatus(AdminRole role, AdminStatus status);
+
+    long countByStatus(AdminStatus status);
 }
