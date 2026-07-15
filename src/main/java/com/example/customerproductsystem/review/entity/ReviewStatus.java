@@ -1,6 +1,7 @@
 package com.example.customerproductsystem.review.entity;
 
-import com.example.customerproductsystem.review.error.InvalidReviewStatusException;
+import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 
 import java.util.Arrays;
 
@@ -12,6 +13,6 @@ public enum ReviewStatus {
         return Arrays.stream(values())
                 .filter(x -> x.name().equalsIgnoreCase(value))
                 .findFirst()
-                .orElseThrow(InvalidReviewStatusException::new);
+                .orElseThrow(()->new CustomException(ErrorCode.INVALID_REVIEW_STATUS));
     }
 }

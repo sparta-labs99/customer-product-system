@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="common/fragments :: common-head">
+</head>
+<body class="sb-nav-fixed">
+
+<nav th:replace="common/fragments :: top-nav"></nav>
+
+<div id="layoutSidenav">
+    <div th:replace="common/fragments :: side-nav"></div>
+
+    <div id="layoutSidenav_content">
+        <main>
+            <!-- th:data-id 로 상품 ID를 화면에 심어두고 JS가 이 값을 읽어서 fetch 합니다 -->
+            <div class="container-fluid px-4" id="detailWrapper" th:data-id="${productId}">
+                <h1 class="mt-4 mb-4">상품 상세</h1>
+
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>
+                            <i class="fas fa-box me-1"></i>
+                            상품 정보
+                        </span>
+                        <span class="badge bg-secondary" id="statusBadge">-</span>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <table class="table table-borderless mb-0">
+                                    <tbody>
+                                    <tr>
+                                        <th style="width: 130px;" class="text-muted">상품 ID</th>
+                                        <td id="fieldId">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">상품명</th>
+                                        <td id="fieldName">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">카테고리</th>
+                                        <td id="fieldCategory">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">가격</th>
+                                        <td id="fieldPrice">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">재고</th>
+                                        <td id="fieldStock">-</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="col-md-6">
+                                <table class="table table-borderless mb-0">
+                                    <tbody>
+                                    <tr>
+                                        <th style="width: 130px;" class="text-muted">등록 관리자</th>
+                                        <td id="fieldAdminName">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">관리자 이메일</th>
+                                        <td id="fieldAdminEmail">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">등록일</th>
+                                        <td id="fieldCreatedAt">-</td>
+                                    </tr>
+                                    <tr>
+                                        <th class="text-muted">수정일</th>
+                                        <td id="fieldUpdatedAt">-</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a class="btn btn-outline-secondary" th:href="@{/view/products/list}">
+                                <i class="fas fa-arrow-left me-1"></i> 목록으로
+                            </a>
+
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-primary" type="button" id="stockBtn">
+                                    <i class="fas fa-boxes-stacked me-1"></i> 재고 변경
+                                </button>
+                                <button class="btn btn-outline-warning" type="button" id="statusBtn">
+                                    <i class="fas fa-toggle-on me-1"></i> 상태 변경
+                                </button>
+                                <button class="btn btn-primary" type="button" id="updateBtn">
+                                    <i class="fas fa-pen me-1"></i> 수정
+                                </button>
+                                <button class="btn btn-danger" type="button" id="deleteBtn">
+                                    <i class="fas fa-trash-alt me-1"></i> 삭제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 리뷰 정보 카드 -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>
+                        <i class="fas fa-comment-dots me-1"></i>
+                        리뷰 정보
+                    </span>
+                    <span class="text-muted" style="font-size: 0.85rem;">
+                        총 <span id="totalReviewCount">0</span>건
+                    </span>
+                </div>
+
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <!-- 왼쪽: 평균 평점 -->
+                        <div class="col-md-3 text-center border-end">
+                            <div class="display-5 fw-bold text-warning" id="averageRating">0.0</div>
+                            <div id="averageStars" class="mb-1"></div>
+                            <div class="text-muted" style="font-size: 0.85rem;">
+                                리뷰 <span id="totalReviewCountInline">0</span>건
+                            </div>
+                        </div>
+
+                        <!-- 오른쪽: 평점별 분포 바 -->
+                        <div class="col-md-9">
+                            <div id="ratingDistribution"></div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- 최근 리뷰 3개 -->
+                    <h6 class="mb-3">최근 리뷰</h6>
+                    <div id="recentReviewList">
+                        <p class="text-muted mb-0">리뷰가 없습니다.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 재고 변경 모달 -->
+            <div class="modal fade" id="stockModal" tabindex="-1" aria-labelledby="stockModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="stockForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="stockModalLabel">재고 변경</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label" for="stockInput">재고 수량</label>
+                                    <input type="number" class="form-control" id="stockInput" required min="0" step="1">
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> 저장
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상태 변경 모달 -->
+            <div class="modal fade" id="statusModal" tabindex="-1" aria-labelledby="statusModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="statusForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="statusModalLabel">상태 변경</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label" for="statusInputSelect">상태</label>
+                                    <select class="form-select" id="statusInputSelect" required>
+                                        <option value="FOR_SALE">판매중</option>
+                                        <option value="OUT_OF_STOCK">품절</option>
+                                        <option value="DISCONTINUED">단종</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> 저장
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 상품 수정 모달 -->
+            <div class="modal fade" id="updateModal" tabindex="-1" aria-labelledby="updateModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <form id="updateForm">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="updateModalLabel">상품 정보 수정</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <label class="form-label" for="updateNameInput">상품명</label>
+                                    <input type="text" class="form-control" id="updateNameInput" required maxlength="100">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="updateCategorySelect">카테고리</label>
+                                    <select class="form-select" id="updateCategorySelect" required>
+                                        <option value="ELECTRONICS">전자기기</option>
+                                        <option value="FASHION">패션</option>
+                                        <option value="FOOD">식품</option>
+                                        <option value="ELSE">기타</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="updatePriceInput">가격</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="updatePriceInput" required min="0" step="10">
+                                        <span class="input-group-text">원</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i> 저장
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer th:replace="common/fragments :: footer"></footer>
+    </div>
+</div>
+
+<div th:replace="common/fragments :: common-scripts"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const detailWrapper = document.getElementById('detailWrapper');
+        const productId = detailWrapper.dataset.id;
+
+        const categoryLabels = {
+            ELECTRONICS: '전자기기',
+            FASHION: '패션',
+            FOOD: '식품',
+            ELSE: '기타'
+        };
+
+        const statusLabels = {
+            FOR_SALE: '판매중',
+            OUT_OF_STOCK: '품절',
+            DISCONTINUED: '단종',
+            DELETED: '삭제됨'
+        };
+
+        const statusBadgeClasses = {
+            FOR_SALE: 'bg-success',
+            OUT_OF_STOCK: 'bg-warning',
+            DISCONTINUED: 'bg-secondary',
+            DELETED: 'bg-dark'
+        };
+
+        // 모달에서 쓸 상태
+        const updateModalEl = document.getElementById('updateModal');
+        const updateModal = new bootstrap.Modal(updateModalEl);
+        const updateForm = document.getElementById('updateForm');
+        let currentProduct = null; // 마지막으로 불러온 상품 데이터 보관 (모달 채울 때 사용)
+
+        const stockModal = new bootstrap.Modal(document.getElementById('stockModal'));
+        const stockForm = document.getElementById('stockForm');
+
+        const statusModal = new bootstrap.Modal(document.getElementById('statusModal'));
+        const statusForm = document.getElementById('statusForm');
+
+        // 1. 상세 데이터 로드
+        function loadProductDetail() {
+            fetch(`/products/${productId}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('상품 정보를 불러오지 못했습니다.');
+                    return res.json();
+                })
+                .then(apiResponse => {
+                    const product = apiResponse.data; // ApiResponse 래핑 해제
+                    currentProduct = product;
+                    renderDetail(product);
+                })
+                .catch(error => {
+                    console.error('Error fetching product detail:', error);
+                    alert('상품 정보를 불러오는데 실패했습니다.');
+                });
+        }
+
+        // 2. 화면에 값 채우기
+        function renderDetail(product) {
+            document.getElementById('fieldId').textContent = product.id;
+            document.getElementById('fieldName').textContent = product.name;
+            document.getElementById('fieldCategory').textContent =
+                categoryLabels[product.category] ?? product.category;
+            document.getElementById('fieldPrice').textContent =
+                `${Number(product.price).toLocaleString()}원`;
+            document.getElementById('fieldStock').textContent =
+                `${Number(product.stock).toLocaleString()}개`;
+            document.getElementById('fieldAdminName').textContent = product.adminName;
+            document.getElementById('fieldAdminEmail').textContent = product.adminEmail;
+            document.getElementById('fieldCreatedAt').textContent =
+                formatDateTime(product.createdAt);
+            document.getElementById('fieldUpdatedAt').textContent =
+                formatDateTime(product.updatedAt);
+
+            const statusBadge = document.getElementById('statusBadge');
+            statusBadge.textContent = statusLabels[product.status] ?? product.status;
+            statusBadge.className = `badge ${statusBadgeClasses[product.status] ?? 'bg-secondary'}`;
+
+            renderReviewSummary(product);
+            renderRecentReviews(product.reviewList);
+        }
+
+        // 2-1. 리뷰 요약 (평균 평점 + 평점별 분포 바) 렌더링
+        function renderReviewSummary(product) {
+            const totalCount = product.totalReviewCount ?? 0;
+            const avgRating = product.averageReviewRating ?? 0;
+
+            document.getElementById('totalReviewCount').textContent = totalCount;
+            document.getElementById('totalReviewCountInline').textContent = totalCount;
+            document.getElementById('averageRating').textContent = avgRating.toFixed(1);
+            document.getElementById('averageStars').innerHTML = renderStarIcons(avgRating);
+
+            // 평점(5~1)별 개수 매핑, 데이터에 없는 평점은 0으로 처리
+            const countMap = {};
+            (product.reviewRatingCount ?? []).forEach(item => {
+                countMap[item.rating] = item.count;
+            });
+
+            const distributionHtml = [5, 4, 3, 2, 1].map(rating => {
+                const count = countMap[rating] ?? 0;
+                const percent = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+
+                return `
+                <div class="d-flex align-items-center mb-1" style="font-size: 0.85rem;">
+                    <span style="width: 30px;">${rating}점</span>
+                    <div class="progress flex-grow-1 mx-2" style="height: 8px;">
+                        <div class="progress-bar bg-warning" style="width: ${percent}%;"></div>
+                    </div>
+                    <span class="text-muted" style="width: 40px;">${count}건</span>
+                </div>
+            `;
+            }).join('');
+
+            document.getElementById('ratingDistribution').innerHTML = distributionHtml;
+        }
+
+        // 2-2. 최근 리뷰 3개 렌더링
+        function renderRecentReviews(reviewList) {
+            const container = document.getElementById('recentReviewList');
+
+            if (!reviewList || reviewList.length === 0) {
+                container.innerHTML = '<p class="text-muted mb-0">리뷰가 없습니다.</p>';
+                return;
+            }
+
+            container.innerHTML = reviewList.map(review => `
+                <div class="border-bottom pb-2 mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <div>
+                            <strong>${review.customerName}</strong>
+                            <span class="ms-2">${renderStarIcons(review.rating)}</span>
+                        </div>
+                        <span class="text-muted" style="font-size: 0.8rem;">
+                            ${formatDateTime(review.createdAt)}
+                        </span>
+                    </div>
+                    <div>${review.contents}</div>
+                </div>
+            `).join('');
+        }
+
+        // 2-3. 평점 숫자를 별 아이콘(★/☆)으로 변환
+        function renderStarIcons(rating) {
+            const rounded = Math.round(rating);
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                html += i <= rounded
+                    ? '<i class="fas fa-star text-warning"></i>'
+                    : '<i class="far fa-star text-warning"></i>';
+            }
+            return html;
+        }
+
+        // 3. LocalDateTime(ISO 문자열) → "yyyy-MM-dd HH:mm" 포맷
+        function formatDateTime(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} `
+                + `${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        }
+
+        // 4. 초기 로딩
+        loadProductDetail();
+
+        // 5. 수정 버튼 -> 모달 열고 현재 값 채우기
+        document.getElementById('updateBtn').addEventListener('click', function() {
+            if (!currentProduct) return;
+
+            document.getElementById('updateNameInput').value = currentProduct.name;
+            document.getElementById('updateCategorySelect').value = currentProduct.category;
+            document.getElementById('updatePriceInput').value = currentProduct.price;
+
+            updateModal.show();
+        });
+
+        // 5-1. 모달 저장 (상품명 / 카테고리 / 가격만 전송)
+        updateForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const payload = {
+                name: document.getElementById('updateNameInput').value.trim(),
+                category: document.getElementById('updateCategorySelect').value,
+                price: Number(document.getElementById('updatePriceInput').value)
+            };
+
+            fetch(`/products/${productId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            })
+                .then(async res => {
+                    if (!res.ok) {
+                        // 서버 유효성 검사(@NotBlank 등) 실패 시 메시지 표시
+                        const errorBody = await res.json().catch(() => null);
+                        const message = errorBody?.message ?? '수정 요청이 실패했습니다.';
+                        throw new Error(message);
+                    }
+                    updateModal.hide();
+                    loadProductDetail(); // 페이지 이동 없이 화면만 갱신
+                })
+                .catch(error => {
+                    console.error('Error updating product:', error);
+                    alert(error.message);
+                });
+        });
+
+        // 6. 삭제 버튼
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            if (confirm('이 상품을 정말 삭제하시겠습니까?')) {
+                fetch(`/products/${productId}`, {
+                    method: 'DELETE'
+                })
+                    .then(res => {
+                        if (!res.ok) throw new Error('삭제 요청이 실패했습니다.');
+                        alert('삭제되었습니다.');
+                        window.location.href = '/view/products/list';
+                    })
+                    .catch(error => {
+                        console.error('Error deleting product:', error);
+                        alert('삭제 중 오류가 발생했습니다.');
+                    });
+            }
+        });
+
+        // 7. 재고 변경 버튼 -> 모달 열고 현재 값 채우기
+        document.getElementById('stockBtn').addEventListener('click', function() {
+            if (!currentProduct) return;
+
+            document.getElementById('stockInput').value = currentProduct.stock;
+            stockModal.show();
+        });
+
+        // 7-1. 재고 변경 저장
+        stockForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const count = Number(document.getElementById('stockInput').value);
+
+            fetch(`/products/${productId}/stock?count=${count}`, {
+                method: 'PATCH'
+            })
+                .then(async res => {
+                    if (!res.ok) {
+                        const errorBody = await res.json().catch(() => null);
+                        const message = errorBody?.message ?? '재고 변경에 실패했습니다.';
+                        throw new Error(message);
+                    }
+                    stockModal.hide();
+                    loadProductDetail();
+                })
+                .catch(error => {
+                    console.error('Error updating stock:', error);
+                    alert(error.message);
+                });
+        });
+
+        // 8. 상태 변경 버튼 -> 모달 열고 현재 값 채우기
+        document.getElementById('statusBtn').addEventListener('click', function() {
+            if (!currentProduct) return;
+
+            document.getElementById('statusInputSelect').value = currentProduct.status;
+            statusModal.show();
+        });
+
+        // 8-1. 상태 변경 저장
+        statusForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const status = document.getElementById('statusInputSelect').value;
+
+            fetch(`/products/${productId}/status?status=${status}`, {
+                method: 'PATCH'
+            })
+                .then(async res => {
+                    if (!res.ok) {
+                        const errorBody = await res.json().catch(() => null);
+                        const message = errorBody?.message ?? '상태 변경에 실패했습니다.';
+                        throw new Error(message);
+                    }
+                    statusModal.hide();
+                    loadProductDetail();
+                })
+                .catch(error => {
+                    console.error('Error updating status:', error);
+                    alert(error.message);
+                });
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 package com.example.customerproductsystem.auth.interceptor;
 
 import com.example.customerproductsystem.admin.entity.AdminRole;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
 import com.example.customerproductsystem.common.error.CustomException;
@@ -27,17 +28,17 @@ public class SuperAdminCheckInterceptor implements HandlerInterceptor {
         HttpSession session = request.getSession(false);
 
         if(session == null) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
+            throw new AdminException.NotLogin();
         }
 
         Object sessionValue = session.getAttribute(SessionConst.LOGIN_ADMIN);
 
         if(!(sessionValue instanceof LoginAdmin loginAdmin)) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. ");
+            throw new AdminException.InvalidSession();
         }
 
         if(loginAdmin.role() != AdminRole.SUPER_ADMIN) {
-            throw new CustomException(HttpStatus.FORBIDDEN, "슈퍼 관리자 권한이 필요합니다.");
+            throw new AdminException.SuperAdminRequired();
         }
 
         return true;

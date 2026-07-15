@@ -17,12 +17,7 @@ public enum ErrorCode {
     // Customer 도메인 에러
     CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUS_001", "존재하지 않는 고객입니다."),
     EMAIL_DUPLICATION(HttpStatus.CONFLICT, "CUS_002", "이미 존재하는 이메일입니다."),
-    ALREADY_INACTIVE_CUSTOMER(HttpStatus.BAD_REQUEST, "CUS_003", "이미 탈퇴 처리된 고객입니다."),
-
-    // Order 도메인 에러
-    ORDER_NOT_FOUND(HttpStatus.NOT_FOUND, "ORD_001", "존재하지 않는 주문입니다."),
-    INVALID_ORDER_STATUS_TRANSITION(HttpStatus.BAD_REQUEST, "ORD_002", "유효하지 않은 주문 상태 변경입니다."),
-    CANNOT_CANCEL_ORDER(HttpStatus.BAD_REQUEST, "ORD_003", "취소할 수 없는 주문 상태입니다.");
+    ALREADY_INACTIVE_CUSTOMER(HttpStatus.BAD_REQUEST, "CUS_003", "이미 탈퇴 처리된 고객입니다.");
 
     private final HttpStatus status;
     private final String code;

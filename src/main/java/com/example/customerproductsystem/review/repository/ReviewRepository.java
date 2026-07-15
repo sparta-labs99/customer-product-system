@@ -3,6 +3,7 @@ package com.example.customerproductsystem.review.repository;
 
 import com.example.customerproductsystem.review.dto.RatingCountDto;
 import com.example.customerproductsystem.review.entity.Review;
+import com.example.customerproductsystem.review.entity.ReviewStatus;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,12 +24,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     Page<Review> findAll(Specification<Review> reviewSpecification, Pageable pageable);
 
     @EntityGraph(attributePaths = "product")
-    List<Review> findTop3ByProductIdOrderByCreatedAtDesc(Long productId);
+    List<Review> findTop3ByProductIdAndStatusNotOrderByCreatedAtDesc(Long productId, ReviewStatus status);
+
+    @EntityGraph(attributePaths = "product")
+    List<Review> findAllByProductId(Long productId);
 
     @Query("""
         SELECT new com.example.customerproductsystem.review.dto.RatingCountDto(r.rating, COUNT(r))
         FROM Review r
-        WHERE r.product.id = :productId AND r.rating <= 5
+        WHERE r.product.id = :productId AND r.rating <= 5 AND r.status != ReviewStatus.DELETED
         GROUP BY r.rating
         ORDER BY r.rating DESC
     """)

@@ -1,5 +1,6 @@
 package com.example.customerproductsystem.review.dto;
 
+import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.review.entity.Review;
 import com.example.customerproductsystem.review.entity.ReviewStatus;
 
@@ -11,7 +12,9 @@ public record GetReviewResponse(
         int rating,
         ReviewStatus status,
         String orderNumber,
-        String productName,        
+        Long productId,
+        String productName,
+        Categories productCategory,
         String customerName,
         LocalDateTime createdAt,
         LocalDateTime modifiedAt
@@ -23,7 +26,9 @@ public record GetReviewResponse(
                 review.getRating(),
                 review.getStatus(),
                 review.getOrder().getOrderNumber(),
+                review.getProduct().getId(),
                 review.getProduct().getName(),
+                review.getProduct().getCategory(),
                 review.getCustomer().getName(),
                 review.getCreatedAt(),
                 review.getUpdatedAt()
