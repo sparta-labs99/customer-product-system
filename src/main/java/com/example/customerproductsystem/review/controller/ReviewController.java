@@ -1,5 +1,6 @@
 package com.example.customerproductsystem.review.controller;
 
+import com.example.customerproductsystem.common.response.ApiResponse;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.service.ReviewService;
 import lombok.RequiredArgsConstructor;
@@ -17,18 +18,18 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("reviews/{id}")
-    public ResponseEntity<GetReviewResponse> getReview(
+    public ResponseEntity<ApiResponse<GetReviewResponse>> getReview(
             @PathVariable Long id
     ) {
 
         GetReviewResponse result = reviewService.getOne(id);
 
-        return ResponseEntity.ok().body(result);
+        return ResponseEntity.ok().body(ApiResponse.success(result));
     }
 
     // 리뷰 전체 보기
     @GetMapping("reviews")
-    public ResponseEntity<Page<GetReviewResponse>> getAllReviews(
+    public ResponseEntity<ApiResponse<Page<GetReviewResponse>>> getAllReviews(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
@@ -37,26 +38,26 @@ public class ReviewController {
 
         Page<GetReviewResponse> result = reviewService.getAll(keyword, rating, status, pageable);
 
-        return ResponseEntity.ok().body(result);
+        return ResponseEntity.ok().body(ApiResponse.success(result));
     }
 
     @DeleteMapping("reviews/{id}")
-    public ResponseEntity<Void> deleteReview(
+    public ResponseEntity<ApiResponse<Void>> deleteReview(
             @PathVariable Long id
     ) {
 
         reviewService.delete(id);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     @DeleteMapping("reviews")
-    public ResponseEntity<Void> deleteReview(
+    public ResponseEntity<ApiResponse<Void>> deleteReview(
             @RequestBody List<Long> ids
     ) {
 
         reviewService.deleteAll(ids);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 }

@@ -178,7 +178,8 @@
                     if (!res.ok) throw new Error('Network response was not ok');
                     return res.json();
                 })
-                .then(data => {
+                .then(apiResponse => {
+                    const data = apiResponse.data; // ApiResponse 래핑 해제
                     totalCountSpan.textContent = `${data.numberOfElements} / ${data.totalElements}`;
                     renderTable(data.content);
                     renderPagination(data.totalPages, data.number);
