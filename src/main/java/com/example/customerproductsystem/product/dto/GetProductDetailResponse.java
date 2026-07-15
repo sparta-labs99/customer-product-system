@@ -4,7 +4,7 @@ import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
-import com.example.customerproductsystem.review.dto.RatingCountDto;
+import com.example.customerproductsystem.review.dto.ReviewRatingCount;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +18,7 @@ public record GetProductDetailResponse(
         String adminName,
         String adminEmail,
         List<GetReviewResponse> reviewList,
-        List<RatingCountDto> reviewRatingCount,
+        List<ReviewRatingCount> reviewRatingCount,
         long totalReviewCount,
         double averageReviewRating,
         LocalDateTime createdAt,
@@ -28,7 +28,7 @@ public record GetProductDetailResponse(
     public static GetProductDetailResponse from(
             Product product,
             List<GetReviewResponse> reviewList,
-            List<RatingCountDto> reviewRatingCount,
+            List<ReviewRatingCount> reviewRatingCount,
             long totalReviewCount,
             double averageReviewRating
     ) {

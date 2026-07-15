@@ -1,5 +1,6 @@
 package com.example.customerproductsystem.customer.repository;
 
+import com.example.customerproductsystem.customer.dto.CustomerStatusCount;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.entity.CustomerStatus;
 import org.springframework.data.domain.Page;
@@ -9,7 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
+import java.util.List;
 
 @Repository
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
@@ -31,4 +32,14 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
             @Param("status") CustomerStatus status,
             @Param("keyword") String keyword,
             Pageable pageable);
+
+    long countByStatus(CustomerStatus status);
+
+    //고객 상태 분포
+    @Query("""
+        SELECT new com.example.customerproductsystem.customer.dto.CustomerStatusCount(c.status, COUNT(c))
+        FROM Customer c
+        GROUP BY c.status
+    """)
+    List<CustomerStatusCount> getStatusDistribution();
 }
