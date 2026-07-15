@@ -33,9 +33,11 @@ public class ProductService {
     private final AdminRepository adminRepository;
     private final ReviewRepository reviewRepository;
 
+    // 상품 등록
     @Transactional
     public CreateProductResponse create (CreateProductRequest request, LoginAdmin sessionAdmin) {
 
+        // enum
         Categories category =
                 Categories.from(request.getCategory());
 
@@ -94,29 +96,24 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetProductResponse> getAll(String keyword, String status, Pageable pageable){
+    public Page<GetProductResponse> getAll(String keyword, String category, String status, Pageable pageable){
+
+        Categories categories =
+                (category == null || category.isEmpty())? null : Categories.from(category);
 
         ProductStatus productStatus =
                 (status == null || status.isEmpty())? null : ProductStatus.from(status);
 
-        Specification<Product> productSpecification = withCondition(keyword, productStatus);
+        Specification<Product> productSpecification = withCondition(keyword, categories, productStatus);
 
         Page<Product> products = productRepository.findAll(productSpecification, pageable);
 
-        List<GetProductResponse> dtos = new ArrayList<>();
-
-        for (Product product : products) {
-
-            GetProductResponse dto = GetProductResponse.from(product);
-
-            dtos.add(dto);
-        }
-
-        return dtos;
+        return products.map(GetProductResponse::from);
     }
 
     public Specification<Product> withCondition(
             String keyword,
+            Categories categories,
             ProductStatus status
     ) {
 
@@ -128,6 +125,12 @@ public class ProductService {
                 predicates.add(
                         cb.like(root.get("name"),
                                 "%" + keyword + "%")
+                );
+            }
+
+            if (categories != null) {
+                predicates.add(
+                        cb.equal(root.get("category"), categories)
                 );
             }
 

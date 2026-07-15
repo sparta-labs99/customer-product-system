@@ -5,6 +5,7 @@ import com.example.customerproductsystem.product.dto.*;
 import com.example.customerproductsystem.product.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,13 +44,14 @@ public class ProductController {
 
     // 상품 전체 조회
     @GetMapping("/products")
-    public ResponseEntity<List<GetProductResponse>> getAllProducts(
+    public ResponseEntity<Page<GetProductResponse>> getAllProducts(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
+            @RequestParam(required = false) String category,
             Pageable pageable // / url에서 자동으로 page, size, sort 값을 저장
     ) {
 
-        List<GetProductResponse> result = productService.getAll(keyword, status, pageable);
+        Page<GetProductResponse> result = productService.getAll(keyword, category, status, pageable);
 
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
