@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="common/fragments :: common-head">
+</head>
+<body class="sb-nav-fixed">
+
+<nav th:replace="common/fragments :: top-nav"></nav>
+
+<div id="layoutSidenav">
+    <div th:replace="common/fragments :: side-nav"></div>
+
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4 mb-4">주문 관리</h1>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="row mb-3 align-items-center">
+                            <!-- 왼쪽: 갯수 선택 & 카운터 -->
+                            <div class="col-md-5 d-flex align-items-center gap-2">
+                                <select id="sizeSelect" class="form-select form-select-sm shadow-sm" style="width: 125px; cursor: pointer; height: 31px;">
+                                    <option value="5">5개씩 보기</option>
+                                    <option value="10" selected>10개씩 보기</option>
+                                    <option value="25">25개씩 보기</option>
+                                </select>
+                                <div class="d-flex align-items-center bg-light border rounded px-2 shadow-sm text-secondary" style="height: 31px; font-size: 0.85rem;">
+                                    <span class="fw-bold text-dark" id="totalCount">0 / 0</span>
+                                    <span class="ms-1 text-muted">건</span>
+                                </div>
+                            </div>
+
+                            <!-- 오른쪽: 검색조건 필터 -->
+                            <div class="col-md-7 d-flex justify-content-end align-items-center gap-2">
+                                <select id="statusSelect" class="form-select form-select-sm shadow-sm" style="width: 130px; cursor: pointer; height: 31px;">
+                                    <option value="">전체 상태</option>
+                                    <option value="PENDING">준비중</option>
+                                    <option value="SHIPPING">배송중</option>
+                                    <option value="COMPLETED">배송완료</option>
+                                    <option value="CANCELED">주문취소</option>
+                                </select>
+
+                                <div class="input-group input-group-sm shadow-sm" style="width: 260px; height: 31px;">
+                                    <input type="text" id="keywordInput" class="form-control" placeholder="주문번호, 고객명 검색">
+                                    <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button">
+                                        <i class="fas fa-search me-1"></i> 검색
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 60px;">순번</th>
+                                    <th>주문번호</th>
+                                    <th>고객명</th>
+                                    <th class="sortable" data-sort="quantity" style="cursor: pointer;">상품/수량 <span class="sort-icon text-secondary" style="font-size: 0.8em;"></span></th>
+                                    <th class="sortable text-end" data-sort="totalPrice" style="cursor: pointer;">결제금액 <span class="sort-icon text-secondary" style="font-size: 0.8em;"></span></th>
+                                    <th class="sortable" data-sort="createdAt" style="cursor: pointer;">주문일시 <span class="sort-icon text-primary" style="font-size: 0.8em;">▼</span></th>
+                                    <th class="text-center">상태</th>
+                                    <th class="text-center" style="width: 100px;">관리</th>
+                                </tr>
+                                </thead>
+                                <tbody id="orderTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- 페이지네이션 컨테이너 -->
+                        <ul class="pagination justify-content-center mt-4" id="paginationArea"></ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <!-- 상세 모달 -->
+        <div th:replace="~{order/detail :: order-detail-modal}"></div>
+
+        <footer th:replace="common/fragments :: footer"></footer>
+    </div>
+</div>
+
+<div th:replace="common/fragments :: common-scripts"></div>
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+
+        const isSuperAdmin = [[${session.LOGIN_ADMIN != null and session.LOGIN_ADMIN.role.name() == 'SUPER_ADMIN'}]];
+
+        /**
+         * 1. DOM 요소 및 전역 상태 관리
+         */
+        const elements = {
+            tbody: document.getElementById('orderTableBody'),
+            sizeSelect: document.getElementById('sizeSelect'),
+            statusSelect: document.getElementById('statusSelect'),
+            keywordInput: document.getElementById('keywordInput'),
+            searchBtn: document.getElementById('searchBtn'),
+            totalCountSpan: document.getElementById('totalCount'),
+            paginationArea: document.getElementById('paginationArea'),
+            sortableHeaders: document.querySelectorAll('th.sortable')
+        };
+
+        let state = {
+            currentSortBy: 'createdAt',
+            currentDirection: 'desc',
+            currentPage: 1
+        };
+
+        /**
+         * util: XSS 방지용 HTML 이스케이프
+         */
+        const escapeHtml = (unsafe) => {
+            if (unsafe == null) return '';
+            return unsafe.toString()
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
+
+        /**
+         * util: 날짜 포맷 변환
+         */
+        const formatDate = (isoString) => {
+            if (!isoString) return '-';
+            const date = new Date(isoString);
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            const h = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return `${y}-${m}-${d} ${h}:${min}`;
+        };
+
+        /**
+         * util: 숫자 콤마 포맷팅
+         */
+        const formatNumber = (number) => {
+            return new Intl.NumberFormat('ko-KR').format(number);
+        };
+
+        const getStatusName = (status) => {
+            if (!status) return '';
+            switch(status.toUpperCase()) {
+                case 'PENDING': return '준비중';
+                case 'SHIPPING': return '배송중';
+                case 'COMPLETED': return '배송완료';
+                case 'CANCELED': return '주문취소';
+                default: return status;
+            }
+        };
+
+        const getStatusBadgeClass = (status) => {
+            if (!status) return 'bg-secondary';
+            switch(status.toUpperCase()) {
+                case 'PENDING': return 'bg-warning text-dark';
+                case 'SHIPPING': return 'bg-info text-dark';
+                case 'COMPLETED': return 'bg-success';
+                case 'CANCELED': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        };
+
+        /**
+         * 주문 목록 API 조회
+         */
+        const loadOrders = (page = 1) => {
+            state.currentPage = page; // 현재 페이지 상태 저장
+
+            const params = new URLSearchParams({
+                page: page,
+                size: elements.sizeSelect.value,
+                sortBy: state.currentSortBy,
+                direction: state.currentDirection
+            });
+
+            if (elements.keywordInput.value.trim()) params.append('keyword', elements.keywordInput.value.trim());
+            if (elements.statusSelect.value) params.append('status', elements.statusSelect.value);
+
+            fetch(`/orders?${params.toString()}`)
+                .then(async res => {
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || '데이터 조회 실패');
+                    }
+                    return res.json();
+                }).then(json => {
+                    const data = json.data || json; // json.data로 감싸져 있는지 확인
+                    const content = data.content || [];
+                    const totalElements = data.totalElements || 0;
+                    const numberOfElements = data.numberOfElements || content.length;
+                    const totalPages = data.totalPages || 0;
+                    const number = data.number || 0;
+
+                    const size = data.size || parseInt(elements.sizeSelect.value, 10);
+
+                    elements.totalCountSpan.textContent = `${numberOfElements} / ${totalElements}`;
+                    renderTable(content, totalElements, number, size);
+                    renderPagination(totalPages, number);
+                }).catch(error => {
+                    console.error('Fetch Error:', error);
+                    alert(error.message);
+                });
+        };
+
+        /**
+         * 테이블 렌더링
+         */
+        const renderTable = (orders, totalElements, pageIndex, size) => {
+            if (!orders || orders.length === 0) {
+                elements.tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">주문 데이터가 없습니다.</td></tr>`;
+                return;
+            }
+
+            elements.tbody.innerHTML = orders.map((order, index) => {
+                const rowNum = (pageIndex * size) + index + 1; // 오름차순 순번
+
+                return `
+                <tr>
+                    <td class="text-center text-muted">${rowNum}</td>
+                    <td>${escapeHtml(order.orderNumber)}</td>
+                    <td>${escapeHtml(order.customerName)}</td>
+                    <td>
+                        <div class="text-truncate" style="max-width: 200px;" title="${escapeHtml(order.productName)}">
+                            ${escapeHtml(order.productName)}
+                        </div>
+                        <small class="text-muted">수량: ${formatNumber(order.quantity)}개</small>
+                    </td>
+                    <td class="text-end fw-bold">${formatNumber(order.totalPrice)}원</td>
+                    <td>${formatDate(order.createdAt)}</td>
+                    <td class="text-center"><span class="badge ${getStatusBadgeClass(order.status)}">${getStatusName(order.status)}</span></td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-detail" data-id="${order.id}">
+                            상세
+                        </button>
+                    </td>
+                </tr>
+            `;
+            }).join('');
+        };
+
+        /**
+         * 페이지네이션 렌더링
+         */
+        const renderPagination = (totalPages, number) => {
+            if (totalPages <= 0) {
+                elements.paginationArea.innerHTML = '';
+                return;
+            }
+
+            const currentPage = number + 1;
+            const blockSize = 5;
+            const startPage = Math.floor((currentPage - 1) / blockSize) * blockSize + 1;
+            let endPage = startPage + blockSize - 1;
+            if (endPage > totalPages) endPage = totalPages;
+
+            let html = '';
+
+            html += `
+            <li class="page-item ${startPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="javascript:void(0);" data-page="${startPage - 1}">이전</a>
+            </li>`;
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
+                </li>`;
+            }
+
+            html += `
+            <li class="page-item ${endPage >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="javascript:void(0);" data-page="${endPage + 1}">다음</a>
+            </li>`;
+
+            elements.paginationArea.innerHTML = html;
+        };
+
+        /**
+         * 이벤트 리스너 세팅
+         */
+        elements.searchBtn.addEventListener('click', () => loadOrders(1));
+        elements.keywordInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') loadOrders(1); });
+        elements.statusSelect.addEventListener('change', () => loadOrders(1));
+        elements.sizeSelect.addEventListener('change', () => loadOrders(1));
+
+        elements.sortableHeaders.forEach(th => {
+            th.addEventListener('click', function() {
+                const clickedSort = this.getAttribute('data-sort');
+
+                if (state.currentSortBy === clickedSort) {
+                    state.currentDirection = state.currentDirection === 'desc' ? 'asc' : 'desc';
+                } else {
+                    state.currentSortBy = clickedSort;
+                    state.currentDirection = 'desc';
+                }
+
+                elements.sortableHeaders.forEach(header => {
+                    const iconSpan = header.querySelector('.sort-icon');
+                    iconSpan.textContent = '';
+                    iconSpan.className = 'sort-icon text-secondary';
+                });
+
+                const currentIconSpan = this.querySelector('.sort-icon');
+                currentIconSpan.textContent = state.currentDirection === 'desc' ? '▼' : '▲';
+                currentIconSpan.className = 'sort-icon text-primary';
+
+                loadOrders(1);
+            });
+        });
+
+        elements.paginationArea.addEventListener('click', function(e) {
+            const target = e.target;
+            if (target.classList.contains('page-link')) {
+                const parentLi = target.closest('.page-item');
+                if (!parentLi.classList.contains('disabled') && !parentLi.classList.contains('active')) {
+                    const page = parseInt(target.getAttribute('data-page'), 10);
+                    loadOrders(page);
+                }
+            }
+        });
+
+        let currentModalOrderId = null;
+
+        // 🔍 [상세] 버튼 클릭 이벤트
+        elements.tbody.addEventListener('click', function(e) {
+            const detailBtn = e.target.closest('.btn-detail');
+            if (detailBtn) {
+                e.preventDefault();
+                const id = detailBtn.getAttribute('data-id');
+                currentModalOrderId = id;
+
+                fetch(`/orders/${id}`)
+                    .then(async res => {
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(err.message || '주문 상세 정보를 불러올 수 없습니다.');
+                        }
+                        return res.json();
+                    }).then(json => {
+                    const data = json.data || json;
+                    
+                    // 기본 및 고객 정보 바인딩
+                    document.getElementById('modalOrderNumber').textContent = data.orderNumber;
+                    document.getElementById('modalProductName').textContent = data.productName;
+                    document.getElementById('modalQuantity').textContent = formatNumber(data.quantity) + '개';
+                    document.getElementById('modalTotalPrice').textContent = formatNumber(data.totalPrice) + '원';
+                    document.getElementById('modalCreatedAt').textContent = formatDate(data.createdAt);
+                    document.getElementById('modalCustomerName').textContent = data.customerName;
+                    document.getElementById('modalCustomerEmail').textContent = data.customerEmail;
+                    
+                    // 관리자 정보 바인딩
+                    if (data.adminName) {
+                        document.getElementById('adminInfoArea').classList.remove('d-none');
+                        document.getElementById('adminInfoEmpty').classList.add('d-none');
+                        document.getElementById('modalAdminName').textContent = data.adminName;
+                        document.getElementById('modalAdminEmail').textContent = data.adminEmail;
+                        document.getElementById('modalAdminRole').textContent = data.adminRole;
+                    } else {
+                        document.getElementById('adminInfoArea').classList.add('d-none');
+                        document.getElementById('adminInfoEmpty').classList.remove('d-none');
+                    }
+
+                    // ⭐ 권한에 따른 상태 UI 처리
+                    const canceledBadge = document.getElementById('modalStatusBadgeCanceled');
+                    const dropdownGroup = document.getElementById('statusDropdownGroup');
+                    const dropdownBtn = document.getElementById('statusDropdownBtn');
+                    const fixedBadge = document.getElementById('modalStatusBadgeFixed');
+                    const cancelReasonArea = document.getElementById('cancelReasonArea');
+                    const btnCancelOrder = document.getElementById('btnCancelOrderModal');
+
+                    // 초기화
+                    if(canceledBadge) canceledBadge.classList.add('d-none');
+                    if(dropdownGroup) dropdownGroup.classList.add('d-none');
+                    if(fixedBadge) fixedBadge.classList.add('d-none');
+                    if(cancelReasonArea) cancelReasonArea.classList.add('d-none');
+                    if(btnCancelOrder) btnCancelOrder.classList.add('d-none');
+
+                    if (data.status === 'CANCELED') {
+                        if(canceledBadge) canceledBadge.classList.remove('d-none');
+                        if(cancelReasonArea) {
+                            cancelReasonArea.classList.remove('d-none');
+                            document.getElementById('modalCancelReason').textContent = data.cancelReason;
+                        }
+                    } else {
+                        if (isSuperAdmin) {
+                            // [슈퍼 관리자] 상태 변경 드롭다운 표시 & 주문취소 버튼 표시
+                            if(dropdownGroup) dropdownGroup.classList.remove('d-none');
+                            if(btnCancelOrder) btnCancelOrder.classList.remove('d-none');
+                            
+                            dropdownBtn.className = `btn btn-sm dropdown-toggle fw-bold ${getStatusBadgeClass(data.status)}`;
+                            dropdownBtn.innerHTML = getStatusName(data.status);
+                            dropdownBtn.setAttribute('data-status', data.status);
+                        } else {
+                            // [일반 관리자] 고정 뱃지
+                            if(fixedBadge) {
+                                fixedBadge.classList.remove('d-none');
+                                fixedBadge.className = `badge px-3 py-2 ${getStatusBadgeClass(data.status)}`;
+                                fixedBadge.textContent = getStatusName(data.status);
+                            }
+                        }
+                    }
+
+                    // 모달 띄우기
+                    const modalElement = document.getElementById('orderDetailModal');
+                    bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }).catch(error => { alert(error.message); });
+            }
+        });
+
+        // ️ [상태 변경] 드롭다운 클릭 이벤트 (PATCH 단독 처리 - 슈퍼 관리자만 동작)
+        document.querySelectorAll('.status-change-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const newStatus = this.getAttribute('data-value');
+                const statusText = this.textContent.trim();
+                const dropdownBtn = document.getElementById('statusDropdownBtn');
+                const currentStatus = dropdownBtn.getAttribute('data-status');
+
+                if (newStatus === currentStatus) return;
+
+                if (!confirm(`주문 상태를 '${statusText}'(으)로 변경하시겠습니까?`)) return;
+
+                fetch(`/orders/${currentModalOrderId}/status`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(async res => {
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || "상태 변경에 실패했습니다. 권한을 확인해주세요.");
+                    }
+                    alert('주문 상태가 변경되었습니다.');
+                    
+                    const dropdownBtn = document.getElementById('statusDropdownBtn');
+                    dropdownBtn.className = `btn btn-sm dropdown-toggle fw-bold ${getStatusBadgeClass(newStatus)}`;
+                    dropdownBtn.innerHTML = getStatusName(newStatus);
+                    dropdownBtn.setAttribute('data-status', newStatus);
+                    
+                    const currentPage = elements.paginationArea.querySelector('.active')?.textContent || 1;
+                    loadOrders(currentPage);
+                }).catch(error => { alert(error.message); });
+            });
+        });
+
+        // ️ [주문 취소] 버튼 클릭 이벤트
+        const btnCancelOrder = document.getElementById('btnCancelOrderModal');
+        if (btnCancelOrder) {
+            btnCancelOrder.addEventListener('click', function() {
+                const reason = prompt('주문 취소 사유를 입력해주세요 (필수):');
+                if (reason === null) return; // 취소 누름
+                if (!reason.trim()) {
+                    alert('취소 사유는 필수입니다.');
+                    return;
+                }
+
+                if (!confirm('정말 이 주문을 취소하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) return;
+
+                fetch(`/orders/${currentModalOrderId}/cancel`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cancelReason: reason.trim() })
+                }).then(async res => {
+                    if (!res.ok) {
+                        const err = await res.json().catch(() => ({}));
+                        throw new Error(err.message || "주문 취소에 실패했습니다.");
+                    }
+                    alert('주문이 취소되었습니다.');
+                    
+                    // 모달 닫고 리프레시
+                    const modalElement = document.getElementById('orderDetailModal');
+                    bootstrap.Modal.getInstance(modalElement).hide();
+                    const currentPage = elements.paginationArea.querySelector('.active')?.textContent || 1;
+                    loadOrders(currentPage);
+                }).catch(error => { alert(error.message); });
+            });
+        }
+
+        // 3. 초기 데이터 로딩
+        loadOrders(1);
+    });
+</script>
+</body>
+</html>
