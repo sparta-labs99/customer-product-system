@@ -1,6 +1,7 @@
 package com.example.customerproductsystem.product.entity;
 
-import com.example.customerproductsystem.product.error.InvalidStatusException;
+import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 
 import java.util.Arrays;
 
@@ -14,6 +15,6 @@ public enum ProductStatus{
         return Arrays.stream(values())
                 .filter(x -> x.name().equalsIgnoreCase(value))
                 .findFirst()
-                .orElseThrow(InvalidStatusException::new);
+                .orElseThrow(()->new CustomException(ErrorCode.INVALID_PRODUCT_STATUS));
     }
 }

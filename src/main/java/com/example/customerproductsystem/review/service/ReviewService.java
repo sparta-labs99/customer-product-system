@@ -1,12 +1,12 @@
 package com.example.customerproductsystem.review.service;
 
+import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.product.entity.Product;
-import com.example.customerproductsystem.product.entity.ProductStatus;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.entity.Review;
 import com.example.customerproductsystem.review.entity.ReviewStatus;
-import com.example.customerproductsystem.review.error.ReviewNotFoundException;
 import com.example.customerproductsystem.review.repository.ReviewRepository;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -31,30 +31,22 @@ public class ReviewService {
     public GetReviewResponse getOne(Long id) {
 
         Review review = reviewRepository.findById(id).orElseThrow(
-                ReviewNotFoundException::new);
+                () -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
 
         return GetReviewResponse.from(review);
     }
 
     @Transactional(readOnly = true)
-    public List<GetReviewResponse> getAll(String keyword, Integer rating, String status, Pageable pageable){
+    public Page<GetReviewResponse> getAll(String keyword, Integer rating, String status, Pageable pageable){
 
-        ReviewStatus reviewStatus = ReviewStatus.from(status);
+        ReviewStatus reviewStatus =
+                (status == null || status.isEmpty())? null : ReviewStatus.from(status);
 
         Specification<Review> reviewSpecification = withCondition(keyword, reviewStatus, rating);
 
         Page<Review> reviews = reviewRepository.findAll(reviewSpecification, pageable);
 
-        List<GetReviewResponse> dtos = new ArrayList<>();
-
-        for (Review review : reviews) {
-
-            GetReviewResponse dto = GetReviewResponse.from(review);
-
-            dtos.add(dto);
-        }
-
-        return dtos;
+        return reviews.map(GetReviewResponse::from);
     }
 
     public Specification<Review> withCondition(
@@ -89,7 +81,7 @@ public class ReviewService {
             // status가 DELETED가 아닌 경우, DELETED 제외
             if (status != ReviewStatus.DELETED) {
                 predicates.add(
-                        cb.notEqual(root.get("status"), ProductStatus.DELETED)
+                        cb.notEqual(root.get("status"), ReviewStatus.DELETED)
                 );
             }
 
@@ -105,11 +97,23 @@ public class ReviewService {
     public void delete(Long id) {
 
         Review review = reviewRepository.findById(id).orElseThrow(
-                ReviewNotFoundException::new);
+                () -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
 
         review.updateStatus(ReviewStatus.DELETED);
 
         reviewRepository.save(review);
     }
 
+    @Transactional
+    public void deleteAll(List<Long> ids) {
+
+        List<Review> reviews = reviewRepository.findAllById(ids);
+
+        if (reviews.size() != ids.size()) {
+            // 에러 추후 수정
+            throw new CustomException(ErrorCode.REVIEW_NOT_FOUND);
+        }
+
+        reviews.forEach(review -> review.updateStatus(ReviewStatus.DELETED));
+    }
 }
