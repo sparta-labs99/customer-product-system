@@ -1,5 +1,7 @@
 package com.example.customerproductsystem.customer.controller;
 
+import com.example.customerproductsystem.common.response.ApiResponse;
+
 import com.example.customerproductsystem.customer.dto.*;
 import com.example.customerproductsystem.customer.service.CustomerService;
 import jakarta.validation.Valid;
@@ -25,84 +27,81 @@ public class CustomerController {
      * 고객 생성
      */
     @PostMapping
-    public ResponseEntity<CreateCustomerResponse> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
+    public ResponseEntity<ApiResponse<CreateCustomerResponse>> createCustomer(@Valid @RequestBody CreateCustomerRequest request) {
         CreateCustomerResponse response = customerService.createCustomer(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
     }
 
     /**
      * 고객 조회 (페이징)
      */
     @GetMapping
-    public ResponseEntity<Page<CreateCustomerResponse>> getAllCustomers(
+    public ResponseEntity<ApiResponse<Page<CreateCustomerResponse>>> getAllCustomers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             CustomerSearchCondition condition) {
 
-        // 1. 정렬 순서  (asc / desc)
         Sort.Direction dir = condition.getDirection().equalsIgnoreCase("asc") ?
                 Sort.Direction.ASC : Sort.Direction.DESC;
 
-        // 2. 정렬 기준 필드
         String sortProperty = condition.getSortBy();
         if (!sortProperty.equals("name") && !sortProperty.equals("email") && !sortProperty.equals("createdAt")) {
             sortProperty = "createdAt";
         }
 
-        // 3. 페이징 객체 조립 (page - 1 보정)
         int pageIndex = Math.max(0, page - 1);
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(dir, sortProperty));
 
         Page<CreateCustomerResponse> responses = customerService.getAllCustomers(condition, pageable);
-        return ResponseEntity.ok(responses);
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     /**
      * 고객 상세 조회
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerDetailResponse> getCustomerDetail(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<CustomerDetailResponse>> getCustomerDetail(@PathVariable Long id) {
         CustomerDetailResponse response = customerService.getCustomerDetail(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
      * 고객 정보 수정
      */
     @PutMapping("/{id}")
-    public ResponseEntity<UpdateCustomerResponse> updateCustomer(
+    public ResponseEntity<ApiResponse<UpdateCustomerResponse>> updateCustomer(
             @PathVariable Long id,
             @Valid @RequestBody UpdateCustomerRequest request) {
         UpdateCustomerResponse response = customerService.updateCustomer(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
      * 고객 상태 수정
      */
     @PatchMapping("/{id}")
-    public ResponseEntity<UpdateCustomerResponse> updateCustomerStatus(
+    public ResponseEntity<ApiResponse<UpdateCustomerResponse>> updateCustomerStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateCustomerStatusRequest request) {
         UpdateCustomerResponse response = customerService.updateCustomerStatus(id, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     /**
      * 고객 다중 삭제 (선택 삭제)
      */
     @DeleteMapping
-    public ResponseEntity<Void> deleteCustomers(@RequestBody List<Long> ids) {
+    public ResponseEntity<ApiResponse<Void>> deleteCustomers(@RequestBody List<Long> ids) {
         customerService.deleteCustomers(ids);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 
     /**
      * 고객 삭제 (상태 변경 - Soft Delete)
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long id) {
         customerService.deleteCustomer(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(ApiResponse.success());
     }
 }
