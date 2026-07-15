@@ -14,10 +14,4 @@ public class ReviewViewController {
     public String reviewListPage() {
         return "review/list";
     }
-
-    @GetMapping("/{id}")
-    public String reviewDetailPage(@PathVariable Long id, Model model) {
-        model.addAttribute("reviewId", id);
-        return "review/detail";
-    }
 }
