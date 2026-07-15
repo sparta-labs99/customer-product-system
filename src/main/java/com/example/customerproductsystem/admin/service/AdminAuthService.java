@@ -5,6 +5,7 @@ import com.example.customerproductsystem.admin.dto.AdminSignupRequest;
 import com.example.customerproductsystem.admin.dto.AdminSignupResponse;
 import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.admin.entity.AdminStatus;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.common.error.CustomException;
@@ -35,7 +36,6 @@ public class AdminAuthService {
                 encodePassword,
                 request.phoneNumber(),
                 request.role()
-
         );
 
         Admin savedAdmin = adminRepository.save(admin);
@@ -48,7 +48,7 @@ public class AdminAuthService {
 
         Admin admin = adminRepository
                 .findByEmail(request.email())
-                .orElseThrow(() -> new CustomException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다."));
+                .orElseThrow(AdminException.LoginFailed::new);
 
         validationPassword(request.password(), admin.getPassword());
 
@@ -59,7 +59,7 @@ public class AdminAuthService {
 
     private void validateDuplicateEmail(String email) {
         if(adminRepository.existsByEmail(email)) {
-            throw new CustomException(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다.");
+            throw new AdminException.DuplicateEmail();
         }
     }
 
@@ -67,35 +67,22 @@ public class AdminAuthService {
         boolean matches  = passwordEncoder.matches(rawPassword, encodedPassword);
 
         if(!matches) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다");
+            throw new AdminException.LoginFailed();
         }
     }
 
     private void validateLoginStatus(AdminStatus status) {
         switch (status) {
-            case ACTIVE -> {
-                return;
-            }
 
-            case PENDING -> throw new CustomException(
-                    HttpStatus.FORBIDDEN,
-                    "승인 대기 중인 관리자입니다."
-            );
+            case ACTIVE -> {return;}
 
-            case REJECTED -> throw new CustomException(
-                    HttpStatus.FORBIDDEN,
-                    "가입 신청이 거부된 관리자입니다."
-            );
+            case PENDING -> throw new AdminException.Pending();
 
-            case SUSPENDED -> throw new CustomException(
-                    HttpStatus.FORBIDDEN,
-                    "정지된 관리자입니다."
-            );
+            case REJECTED -> throw new AdminException.Rejected();
 
-            case INACTIVE -> throw new CustomException(
-                    HttpStatus.FORBIDDEN,
-                    "비활성된 관리자입니다."
-            );
+            case SUSPENDED -> throw new AdminException.Suspended();
+
+            case INACTIVE -> throw new AdminException.Inactive();
         }
     }
 }
