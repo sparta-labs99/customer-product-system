@@ -44,7 +44,7 @@
         <div class="sb-sidenav-menu">
             <div class="nav">
                 <div class="sb-sidenav-menu-heading">Core</div>
-                <a class="nav-link" th:href="@{/view/dashboard}">
+                <a class="nav-link" href="/">
                     <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                     Dashboard
                 </a>
@@ -56,24 +56,33 @@
                     고객
                     <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                 </a>
-
                 <div class="collapse" id="collapseCustomers" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
                     <nav class="sb-sidenav-menu-nested nav">
-                        <a class="nav-link" th:href="@{/customers/list}">고객 관리</a>
+                        <a class="nav-link" th:href="@{/view/customers}">고객 관리</a>
                     </nav>
                 </div>
 
-
                 <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseProducts" aria-expanded="false" aria-controls="collapseProducts">
-                    <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                    <div class="sb-nav-link-icon"><i class="fas fa-box"></i></div>
                     상품
                     <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
                 </a>
-
-                <div class="collapse" id="collapseProducts" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                <div class="collapse" id="collapseProducts" aria-labelledby="headingTwo" data-bs-parent="#sidenavAccordion">
                     <nav class="sb-sidenav-menu-nested nav">
                         <a class="nav-link" th:href="@{/view/products/list}">상품 관리</a>
                         <a class="nav-link" th:href="@{/view/reviews/list}">상품 리뷰 관리</a>
+                    </nav>
+                </div>
+
+                <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#collapseOrders" aria-expanded="false" aria-controls="collapseOrders">
+                    <div class="sb-nav-link-icon"><i class="fas fa-shopping-cart"></i></div>
+                    주문
+                    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                </a>
+                <div class="collapse" id="collapseOrders" aria-labelledby="headingThree" data-bs-parent="#sidenavAccordion">
+                    <nav class="sb-sidenav-menu-nested nav">
+                        <a class="nav-link" th:href="@{/view/orders/new}">CS 주문 생성</a>
+                        <a class="nav-link" th:href="@{/view/orders}">주문 관리</a>
                     </nav>
                 </div>
             </div>

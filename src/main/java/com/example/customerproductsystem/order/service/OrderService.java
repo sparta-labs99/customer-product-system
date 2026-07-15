@@ -1,10 +1,10 @@
 package com.example.customerproductsystem.order.service;
 
 import com.example.customerproductsystem.admin.entity.Admin;
-import com.example.customerproductsystem.admin.error.AdminNotFoundException;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.error.CustomerException;
 import com.example.customerproductsystem.customer.repository.CustomerRepository;
@@ -16,7 +16,6 @@ import com.example.customerproductsystem.order.entity.Order;
 import com.example.customerproductsystem.order.error.OrderException;
 import com.example.customerproductsystem.order.repository.OrderRepository;
 import com.example.customerproductsystem.product.entity.Product;
-import com.example.customerproductsystem.product.error.ProductNotFoundException;
 import com.example.customerproductsystem.order.dto.UpdateOrderResponse;
 import com.example.customerproductsystem.order.dto.UpdateOrderStatusRequest;
 import com.example.customerproductsystem.product.repository.ProductRepository;
@@ -53,7 +52,7 @@ public class OrderService {
                 .orElseThrow(() -> new CustomerException.NotFound(request.getCustomerId()));
 
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(ProductNotFoundException::new);
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));;
 
         Admin admin = adminRepository.getReferenceById(sessionAdmin.id());
 
@@ -65,11 +64,11 @@ public class OrderService {
 
         // 주문 생성
         /* order, product 도메인 검증
-        * 주문 수량이 1 이상인가?
-        * 해당 상품이 단종(DISCONTINUED) 상태인가?
-        * 해당 상품이 품절(OUT_OF_STOCK) 상태이거나 재고가 0인가?
-        * 주문하려는 수량이 현재 남은 재고(stock)보다 큰가?
-        * */
+         * 주문 수량이 1 이상인가?
+         * 해당 상품이 단종(DISCONTINUED) 상태인가?
+         * 해당 상품이 품절(OUT_OF_STOCK) 상태이거나 재고가 0인가?
+         * 주문하려는 수량이 현재 남은 재고(stock)보다 큰가?
+         * */
         Order order = request.toEntity(orderNumber, customer, product, admin);
 
         Order savedOrder = orderRepository.save(order);
@@ -82,9 +81,9 @@ public class OrderService {
      */
     @Transactional(readOnly = true)
     public Page<OrderSearchResponse> getOrders(
-            OrderSearchCondition condition, 
+            OrderSearchCondition condition,
             Pageable pageable) {
-            
+
         Page<Order> orders = orderRepository.findAllByCondition(
                 condition.getStatus(),
                 condition.getKeyword(),
