@@ -61,17 +61,44 @@ public class Product extends BaseEntity {
             throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
         }
 
+        // 단종 상태인 경우 재고만 변경하고 상태 자동 전환은 무시
+        if (this.status == ProductStatus.DISCONTINUED) {
+            return;
+        }
+
         if (stock == 0) {
             this.status = ProductStatus.OUT_OF_STOCK;
         }
-        else if (this.status != ProductStatus.DISCONTINUED) {
-            // stock > 0
+        else {
             this.status = ProductStatus.FOR_SALE;
         }
     }
 
     public void updateStatus(ProductStatus status) {
         this.status = status;
+    }
+
+    /*주문 재고 차감*/
+    public void decreaseStockForOrder(int orderQuantity) {
+        if (this.status == ProductStatus.DISCONTINUED) {
+            throw new IllegalArgumentException("단종된 상품으로 주문할 수 없습니다.");
+        }
+
+        if (this.status == ProductStatus.OUT_OF_STOCK || this.stock == 0) {
+            throw new IllegalArgumentException("품절된 상품으로 주문할 수 없습니다.");
+        }
+
+        if (this.stock < orderQuantity) {
+            throw new IllegalArgumentException("상품의 재고가 부족합니다. (현재 재고: " + this.stock + ")");
+        }
+
+        int remainingStock = this.stock - orderQuantity;
+        this.updateStock(remainingStock);
+    }
+
+    /*주문 취소로 인한 재고 복구*/
+    public void restoreStockForCancel(int orderQuantity) {
+        this.updateStock(this.stock + orderQuantity);
     }
 }
 
