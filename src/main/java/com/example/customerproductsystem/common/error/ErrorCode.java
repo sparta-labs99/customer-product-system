@@ -50,7 +50,6 @@ public enum ErrorCode {
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REV_001", "존재하지 않는 리뷰입니다."),
     INVALID_REVIEW_STATUS(HttpStatus.BAD_REQUEST, "REV_002", "유효하지 않은 상태 요청입니다.");
 
-
     private final HttpStatus status;
     private final String code;
     private final String message;
