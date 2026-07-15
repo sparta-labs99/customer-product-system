@@ -1,11 +1,12 @@
 package com.example.customerproductsystem.review.service;
 
+import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.entity.Review;
 import com.example.customerproductsystem.review.entity.ReviewStatus;
-import com.example.customerproductsystem.review.error.ReviewNotFoundException;
 import com.example.customerproductsystem.review.repository.ReviewRepository;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -30,7 +31,7 @@ public class ReviewService {
     public GetReviewResponse getOne(Long id) {
 
         Review review = reviewRepository.findById(id).orElseThrow(
-                ReviewNotFoundException::new);
+                () -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
 
         return GetReviewResponse.from(review);
     }
@@ -96,7 +97,7 @@ public class ReviewService {
     public void delete(Long id) {
 
         Review review = reviewRepository.findById(id).orElseThrow(
-                ReviewNotFoundException::new);
+                () -> new CustomException(ErrorCode.REVIEW_NOT_FOUND));
 
         review.updateStatus(ReviewStatus.DELETED);
 
@@ -110,7 +111,7 @@ public class ReviewService {
 
         if (reviews.size() != ids.size()) {
             // 에러 추후 수정
-            throw new IllegalArgumentException("존재하지 않는 상품이 포함되어 있습니다.");
+            throw new CustomException(ErrorCode.REVIEW_NOT_FOUND);
         }
 
         reviews.forEach(review -> review.updateStatus(ReviewStatus.DELETED));

@@ -3,12 +3,12 @@ package com.example.customerproductsystem.product.service;
 import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.auth.LoginAdmin;
+import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 import com.example.customerproductsystem.product.dto.*;
 import com.example.customerproductsystem.product.entity.Categories;
 import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
-import com.example.customerproductsystem.admin.error.AdminNotFoundException;
-import com.example.customerproductsystem.product.error.ProductNotFoundException;
 import com.example.customerproductsystem.product.repository.ProductRepository;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.dto.RatingCountDto;
@@ -46,7 +46,7 @@ public class ProductService {
                 ProductStatus.from(request.getStatus());
 
         Admin admin = adminRepository.findById(sessionAdmin.id()).orElseThrow(
-                AdminNotFoundException::new);
+                () -> new CustomException(ErrorCode.ADMIN_NOT_FOUND));
 
         Product product = new Product(
                 request.getName(),
@@ -65,8 +65,8 @@ public class ProductService {
     @Transactional(readOnly = true)
     public GetProductDetailResponse getOne (Long id) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(ProductNotFoundException::new);
+        Product product = productRepository.findById(id).orElseThrow(
+                () -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         // 최근 리뷰 3개 찾기
         List<Review> reviews = reviewRepository.findTop3ByProductIdAndStatusNotOrderByCreatedAtDesc(id, ReviewStatus.DELETED);
@@ -155,8 +155,8 @@ public class ProductService {
     @Transactional
     public UpdateProductResponse update(Long id, UpdateProductRequest request) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(ProductNotFoundException::new);
+        Product product = productRepository.findById(id).orElseThrow(
+                () -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         Categories category =
                 Categories.from(request.getCategory());
@@ -172,8 +172,8 @@ public class ProductService {
     @Transactional
     public UpdateProductResponse updateStock(Long id, int newStock) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(ProductNotFoundException::new);
+        Product product = productRepository.findById(id).orElseThrow(
+                () -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         product.updateStock(newStock);
 
@@ -185,8 +185,8 @@ public class ProductService {
     @Transactional
     public UpdateProductResponse updateStatus(Long id, String newStatus) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(ProductNotFoundException::new);
+        Product product = productRepository.findById(id).orElseThrow(
+                () -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         ProductStatus status =
                 ProductStatus.from(newStatus);
@@ -201,8 +201,8 @@ public class ProductService {
     @Transactional
     public void delete(Long id) {
 
-        Product product = productRepository.findById(id)
-                .orElseThrow(ProductNotFoundException::new);
+        Product product = productRepository.findById(id).orElseThrow(
+                () -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         product.updateStatus(ProductStatus.DELETED);
 
@@ -216,7 +216,7 @@ public class ProductService {
 
         if (products.size() != ids.size()) {
             // 에러 추후 수정
-            throw new IllegalArgumentException("존재하지 않는 상품이 포함되어 있습니다.");
+            throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
         products.forEach(product -> product.updateStatus(ProductStatus.DELETED));
