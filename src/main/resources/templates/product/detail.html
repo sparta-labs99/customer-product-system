@@ -298,7 +298,8 @@
                     if (!res.ok) throw new Error('상품 정보를 불러오지 못했습니다.');
                     return res.json();
                 })
-                .then(product => {
+                .then(apiResponse => {
+                    const product = apiResponse.data; // ApiResponse 래핑 해제
                     currentProduct = product;
                     renderDetail(product);
                 })
