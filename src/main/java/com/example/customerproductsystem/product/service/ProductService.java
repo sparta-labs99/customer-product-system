@@ -13,6 +13,7 @@ import com.example.customerproductsystem.product.repository.ProductRepository;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.dto.RatingCountDto;
 import com.example.customerproductsystem.review.entity.Review;
+import com.example.customerproductsystem.review.entity.ReviewStatus;
 import com.example.customerproductsystem.review.repository.ReviewRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -33,9 +34,11 @@ public class ProductService {
     private final AdminRepository adminRepository;
     private final ReviewRepository reviewRepository;
 
+    // 상품 등록
     @Transactional
     public CreateProductResponse create (CreateProductRequest request, LoginAdmin sessionAdmin) {
 
+        // enum
         Categories category =
                 Categories.from(request.getCategory());
 
@@ -66,7 +69,7 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
 
         // 최근 리뷰 3개 찾기
-        List<Review> reviews = reviewRepository.findTop3ByProductIdOrderByCreatedAtDesc(id);
+        List<Review> reviews = reviewRepository.findTop3ByProductIdAndStatusNotOrderByCreatedAtDesc(id, ReviewStatus.DELETED);
         List<GetReviewResponse> reviewDtos = new ArrayList<>();
         for (Review review : reviews) {
             reviewDtos.add(GetReviewResponse.from(review));
@@ -94,29 +97,24 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetProductResponse> getAll(String keyword, String status, Pageable pageable){
+    public Page<GetProductResponse> getAll(String keyword, String category, String status, Pageable pageable){
+
+        Categories categories =
+                (category == null || category.isEmpty())? null : Categories.from(category);
 
         ProductStatus productStatus =
                 (status == null || status.isEmpty())? null : ProductStatus.from(status);
 
-        Specification<Product> productSpecification = withCondition(keyword, productStatus);
+        Specification<Product> productSpecification = withCondition(keyword, categories, productStatus);
 
         Page<Product> products = productRepository.findAll(productSpecification, pageable);
 
-        List<GetProductResponse> dtos = new ArrayList<>();
-
-        for (Product product : products) {
-
-            GetProductResponse dto = GetProductResponse.from(product);
-
-            dtos.add(dto);
-        }
-
-        return dtos;
+        return products.map(GetProductResponse::from);
     }
 
     public Specification<Product> withCondition(
             String keyword,
+            Categories categories,
             ProductStatus status
     ) {
 
@@ -128,6 +126,12 @@ public class ProductService {
                 predicates.add(
                         cb.like(root.get("name"),
                                 "%" + keyword + "%")
+                );
+            }
+
+            if (categories != null) {
+                predicates.add(
+                        cb.equal(root.get("category"), categories)
                 );
             }
 
@@ -203,5 +207,18 @@ public class ProductService {
         product.updateStatus(ProductStatus.DELETED);
 
         productRepository.save(product);
+    }
+
+    @Transactional
+    public void deleteAll(List<Long> ids) {
+
+        List<Product> products = productRepository.findAllById(ids);
+
+        if (products.size() != ids.size()) {
+            // 에러 추후 수정
+            throw new IllegalArgumentException("존재하지 않는 상품이 포함되어 있습니다.");
+        }
+
+        products.forEach(product -> product.updateStatus(ProductStatus.DELETED));
     }
 }
