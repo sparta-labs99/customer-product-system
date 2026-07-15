@@ -37,24 +37,16 @@ public class ReviewService {
     }
 
     @Transactional(readOnly = true)
-    public List<GetReviewResponse> getAll(String keyword, Integer rating, String status, Pageable pageable){
+    public Page<GetReviewResponse> getAll(String keyword, Integer rating, String status, Pageable pageable){
 
-        ReviewStatus reviewStatus = ReviewStatus.from(status);
+        ReviewStatus reviewStatus =
+                (status == null || status.isEmpty())? null : ReviewStatus.from(status);
 
         Specification<Review> reviewSpecification = withCondition(keyword, reviewStatus, rating);
 
         Page<Review> reviews = reviewRepository.findAll(reviewSpecification, pageable);
 
-        List<GetReviewResponse> dtos = new ArrayList<>();
-
-        for (Review review : reviews) {
-
-            GetReviewResponse dto = GetReviewResponse.from(review);
-
-            dtos.add(dto);
-        }
-
-        return dtos;
+        return reviews.map(GetReviewResponse::from);
     }
 
     public Specification<Review> withCondition(
@@ -89,7 +81,7 @@ public class ReviewService {
             // status가 DELETED가 아닌 경우, DELETED 제외
             if (status != ReviewStatus.DELETED) {
                 predicates.add(
-                        cb.notEqual(root.get("status"), ProductStatus.DELETED)
+                        cb.notEqual(root.get("status"), ReviewStatus.DELETED)
                 );
             }
 
@@ -112,4 +104,16 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
+    @Transactional
+    public void deleteAll(List<Long> ids) {
+
+        List<Review> reviews = reviewRepository.findAllById(ids);
+
+        if (reviews.size() != ids.size()) {
+            // 에러 추후 수정
+            throw new IllegalArgumentException("존재하지 않는 상품이 포함되어 있습니다.");
+        }
+
+        reviews.forEach(review -> review.updateStatus(ReviewStatus.DELETED));
+    }
 }

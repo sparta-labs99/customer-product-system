@@ -102,4 +102,15 @@ public class ProductController {
 
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    // 상품 다수 삭제 (view 전용)
+    @DeleteMapping("/products")
+    public ResponseEntity<Void> deleteProducts(
+            @RequestBody List<Long> ids
+    ) {
+
+        productService.deleteAll(ids);
+
+        return ResponseEntity.noContent().build();
+    }
 }

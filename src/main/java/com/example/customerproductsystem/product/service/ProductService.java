@@ -13,6 +13,7 @@ import com.example.customerproductsystem.product.repository.ProductRepository;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
 import com.example.customerproductsystem.review.dto.RatingCountDto;
 import com.example.customerproductsystem.review.entity.Review;
+import com.example.customerproductsystem.review.entity.ReviewStatus;
 import com.example.customerproductsystem.review.repository.ReviewRepository;
 import jakarta.persistence.criteria.Predicate;
 import lombok.RequiredArgsConstructor;
@@ -68,7 +69,7 @@ public class ProductService {
                 .orElseThrow(ProductNotFoundException::new);
 
         // 최근 리뷰 3개 찾기
-        List<Review> reviews = reviewRepository.findTop3ByProductIdOrderByCreatedAtDesc(id);
+        List<Review> reviews = reviewRepository.findTop3ByProductIdAndStatusNotOrderByCreatedAtDesc(id, ReviewStatus.DELETED);
         List<GetReviewResponse> reviewDtos = new ArrayList<>();
         for (Review review : reviews) {
             reviewDtos.add(GetReviewResponse.from(review));
@@ -206,5 +207,18 @@ public class ProductService {
         product.updateStatus(ProductStatus.DELETED);
 
         productRepository.save(product);
+    }
+
+    @Transactional
+    public void deleteAll(List<Long> ids) {
+
+        List<Product> products = productRepository.findAllById(ids);
+
+        if (products.size() != ids.size()) {
+            // 에러 추후 수정
+            throw new IllegalArgumentException("존재하지 않는 상품이 포함되어 있습니다.");
+        }
+
+        products.forEach(product -> product.updateStatus(ProductStatus.DELETED));
     }
 }
