@@ -4,6 +4,7 @@ import com.example.customerproductsystem.admin.dto.*;
 import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.admin.entity.AdminRole;
 import com.example.customerproductsystem.admin.entity.AdminStatus;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.admin.repository.AdminSpecification;
 import com.example.customerproductsystem.common.error.CustomException;
@@ -73,7 +74,7 @@ public class AdminService {
         Admin admin = findAdmin(adminId);
 
         if (admin.getRole() == request.role()) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "현재 역할과 동일한 역할로 변경할 수 없습니다.");
+            throw new AdminException.SameRole();
         }
 
         validateLastActiveSuperAdminRoleChange(admin, request.role());
@@ -91,7 +92,7 @@ public class AdminService {
         validateOperationalStatus(newStatus);
 
         if (admin.getStatus() == newStatus) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "현재 상태와 동일한 상태로 변경할 수 없습니다.");
+            throw new AdminException.SameStatus();
         }
 
         validateLastActiveSuperAdminStatusChange(admin, newStatus);
@@ -131,25 +132,25 @@ public class AdminService {
 
     private Admin findAdmin(Long adminId) {
         return adminRepository.findById(adminId)
-                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AdminException.NotFound(adminId));
     }
 
     private void validateEmailForUpdate(Long adminId, String email) {
         boolean duplicate = adminRepository.existsByEmailAndIdNot(email, adminId);
         if (duplicate) {
-            throw new CustomException(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다.");
+            throw new AdminException.DuplicateEmail();
         }
     }
 
     private void validatePendingStatus(Admin admin) {
         if (admin.getStatus() != AdminStatus.PENDING) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "승인 대기 상태의 관리자만 승인 또는 거부할 수 있습니다.");
+            throw new AdminException.NotPending();
         }
     }
 
     private void validateOperationalStatus(AdminStatus status) {
         if (status == AdminStatus.PENDING || status == AdminStatus.REJECTED) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "승인대기와 거부 상태는 상태 변경 API로 설정할 수 없습니다.");
+            throw new AdminException.InvalidStatusChange();
         }
     }
 
@@ -164,7 +165,7 @@ public class AdminService {
         long activeSuperAdminCount = adminRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE);
 
         if(admin.getStatus() == AdminStatus.ACTIVE && activeSuperAdminCount <= 1) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "마지막 활성 슈퍼 관리자의 역할은 변경할 수 없습니다.");
+            throw new AdminException.LastActiveSuperAdminRoleChange();
         }
     }
 
@@ -181,7 +182,7 @@ public class AdminService {
         long activeSuperAdminCount = adminRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE);
 
         if (activeSuperAdminCount <= 1) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "마지막 활성 슈퍼 관리자는 비활성화하거나 정지할 수 없습니다.");
+            throw new AdminException.LastSuperAdmin();
         }
     }
 
@@ -197,7 +198,7 @@ public class AdminService {
         long activeSuperAdminCount = adminRepository.countByRoleAndStatus(AdminRole.SUPER_ADMIN, AdminStatus.ACTIVE);
 
         if (activeSuperAdminCount <= 1) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "마지막 활성 슈퍼 관리자는 삭제할 수 없습니다.");
+            throw new AdminException.LastSuperAdmin();
         }
     }
 
@@ -221,7 +222,7 @@ public class AdminService {
             case "email" -> "email";
             case "createdAt" -> "createdAt";
 
-            default -> throw new CustomException(HttpStatus.BAD_REQUEST,"지원하지 않은 정렬 기준입니다.");
+            default -> throw new AdminException.InvalidSort();
         };
     }
 
@@ -235,10 +236,7 @@ public class AdminService {
             case "asc" -> Sort.Direction.ASC;
             case "desc" -> Sort.Direction.DESC;
 
-            default -> throw new CustomException(
-                    HttpStatus.BAD_REQUEST,
-                    "정렬 방향은 asc 또는 desc만 사용할 수 있습니다."
-            );
+            default -> throw new AdminException.InvalidSortDirection();
         };
     }
 }

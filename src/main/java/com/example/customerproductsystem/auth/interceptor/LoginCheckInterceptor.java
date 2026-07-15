@@ -2,6 +2,7 @@ package com.example.customerproductsystem.auth.interceptor;
 
 import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.admin.entity.AdminStatus;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
@@ -43,7 +44,7 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
         Admin admin = adminRepository.findById(loginAdmin.id())
                 .orElseThrow(() -> {
                     session.invalidate();
-                    return new CustomException(HttpStatus.UNAUTHORIZED, "유효하지 않은 로그인 정보입니다. ");
+                    return new AdminException.InvalidSession();
                 });
 
         // 로그인 이후에 관리자가 정지-비활성화-거부 상태로 변경됐을 가능성 확인. (ACTIVE가 아니면 기존 로그인 세션 무효)

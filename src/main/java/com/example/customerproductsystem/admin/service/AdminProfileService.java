@@ -4,6 +4,7 @@ import com.example.customerproductsystem.admin.dto.MyProfileResponse;
 import com.example.customerproductsystem.admin.dto.MyProfileUpdateRequest;
 import com.example.customerproductsystem.admin.dto.PasswordChangeRequest;
 import com.example.customerproductsystem.admin.entity.Admin;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.common.config.PasswordEncoder;
 import com.example.customerproductsystem.common.error.CustomException;
@@ -50,7 +51,7 @@ public class AdminProfileService {
     // ID로 현재 관리자 계정 조회
     private Admin findAdmin(Long adminId) {
         return adminRepository.findById(adminId)
-                .orElseThrow(() -> new CustomException(HttpStatus.NOT_FOUND, "관리자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new AdminException.NotFound(adminId));
     }
 
     // 이메일 수정 시 이메일 중복검사
@@ -59,7 +60,7 @@ public class AdminProfileService {
         boolean duplicate = adminRepository.existsByEmailAndIdNot(email, adminId);
 
         if(duplicate) {
-            throw new CustomException(HttpStatus.CONFLICT,"이미 사용 중인 이메일입니다. ");
+            throw new AdminException.DuplicateEmail();
         }
     }
 
@@ -68,7 +69,7 @@ public class AdminProfileService {
         boolean matches = passwordEncoder.matches(currentPassword, encodePassword);
 
         if(!matches) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다. ");
+            throw new AdminException.CurrentPasswordMismatch();
         }
     }
 }
