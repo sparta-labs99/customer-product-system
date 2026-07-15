@@ -17,4 +17,5 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @EntityGraph(attributePaths = "admin")
     Page<Product> findAll(Specification<Product> productSpecification, Pageable pageable);
 
+
 }

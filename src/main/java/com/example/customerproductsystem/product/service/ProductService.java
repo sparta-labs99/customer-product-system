@@ -38,13 +38,14 @@ public class ProductService {
     @Transactional
     public CreateProductResponse create (CreateProductRequest request, LoginAdmin sessionAdmin) {
 
-        // enum
+        // String -> Enum
         Categories category =
                 Categories.from(request.getCategory());
 
         ProductStatus status =
                 ProductStatus.from(request.getStatus());
 
+        // 등록 관리자 매핑
         Admin admin = adminRepository.findById(sessionAdmin.id()).orElseThrow(
                 () -> new CustomException(ErrorCode.ADMIN_NOT_FOUND));
 
@@ -201,12 +202,16 @@ public class ProductService {
     @Transactional
     public void delete(Long id) {
 
+        // 삭품 삭제
         Product product = productRepository.findById(id).orElseThrow(
                 () -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
-
         product.updateStatus(ProductStatus.DELETED);
 
-        productRepository.save(product);
+        // 상품에 달린 리뷰도 삭제
+        List<Review> reviews = reviewRepository.findAllByProductId(product.getId());
+        reviews.forEach(review -> review.updateStatus(ReviewStatus.DELETED));
+
+        // save
     }
 
     @Transactional
@@ -215,10 +220,18 @@ public class ProductService {
         List<Product> products = productRepository.findAllById(ids);
 
         if (products.size() != ids.size()) {
-            // 에러 추후 수정
             throw new CustomException(ErrorCode.PRODUCT_NOT_FOUND);
         }
 
-        products.forEach(product -> product.updateStatus(ProductStatus.DELETED));
+        for (Product product : products) {
+
+            product.updateStatus(ProductStatus.DELETED);
+
+            // 상품에 달린 리뷰도 삭제
+            List<Review> reviews = reviewRepository.findAllByProductId(product.getId());
+            reviews.forEach(review -> review.updateStatus(ReviewStatus.DELETED));
+        }
+
+        // save
     }
 }

@@ -26,6 +26,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     @EntityGraph(attributePaths = "product")
     List<Review> findTop3ByProductIdAndStatusNotOrderByCreatedAtDesc(Long productId, ReviewStatus status);
 
+    @EntityGraph(attributePaths = "product")
+    List<Review> findAllByProductId(Long productId);
+
     @Query("""
         SELECT new com.example.customerproductsystem.review.dto.RatingCountDto(r.rating, COUNT(r))
         FROM Review r
