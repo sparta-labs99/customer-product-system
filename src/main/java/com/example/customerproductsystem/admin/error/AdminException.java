@@ -114,6 +114,16 @@ public class AdminException {
         }
     }
 
+    public static class OperationAdminRequired extends CustomException {
+
+        public OperationAdminRequired() {
+            super(
+                    ErrorCode.OPERATION_ADMIN_REQUIRED,
+                    "운영 관리자 권한이 필요합니다."
+            );
+        }
+    }
+
     public static class LastSuperAdmin extends CustomException {
 
         public LastSuperAdmin() {

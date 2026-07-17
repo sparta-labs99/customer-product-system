@@ -37,7 +37,7 @@ public enum ErrorCode {
     ADMIN_INVALID_SORT(HttpStatus.BAD_REQUEST, "ADM_022", "지원하지 않는 정렬 기준입니다."),
     ADMIN_INVALID_SORT_DIRECTION(HttpStatus.BAD_REQUEST, "ADM_023", "정렬 방향은 asc 또는 desc만 사용할 수 있습니다."),
     ADMIN_DELETED(HttpStatus.FORBIDDEN, "ADM_024", "삭제된 관리자입니다."),
-
+    OPERATION_ADMIN_REQUIRED(HttpStatus.FORBIDDEN, "ADM_025", "운영 관리자 권한이 필요합니다."),
 
     // Customer 도메인 에러
     CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUS_001", "존재하지 않는 고객입니다."),
