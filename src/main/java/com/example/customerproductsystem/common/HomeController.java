@@ -12,7 +12,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(@SessionAttribute(name = SessionConst.LOGIN_ADMIN, required = false) LoginAdmin loginAdmin) {
         if (loginAdmin == null) {
-            return "redirect:/login";
+            return "redirect:/view/login";
         }
         return "redirect:/view/dashboard";
     }

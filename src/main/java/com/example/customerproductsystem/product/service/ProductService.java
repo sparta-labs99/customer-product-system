@@ -45,6 +45,10 @@ public class ProductService {
         ProductStatus status =
                 ProductStatus.from(request.getStatus());
 
+        if (request.getStock() == 0 && status == ProductStatus.FOR_SALE) {
+            throw new CustomException(ErrorCode.INVALID_PRODUCT_STATUS_ZERO_STOCK);
+        }
+
         // 등록 관리자 매핑
         Admin admin = adminRepository.findById(sessionAdmin.id()).orElseThrow(
                 () -> new CustomException(ErrorCode.ADMIN_NOT_FOUND));
@@ -191,6 +195,10 @@ public class ProductService {
 
         ProductStatus status =
                 ProductStatus.from(newStatus);
+
+        if (product.getStock() == 0 && status == ProductStatus.FOR_SALE) {
+            throw new CustomException(ErrorCode.INVALID_PRODUCT_STATUS_ZERO_STOCK);
+        }
 
         product.updateStatus(status);
 

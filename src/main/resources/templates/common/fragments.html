@@ -36,7 +36,7 @@
 
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <li>
-                    <a class="dropdown-item" th:href="@{/profile}">
+                    <a class="dropdown-item" th:href="@{/view/profile}">
                         <i class="fas fa-user-circle me-2"></i>
                         Profile
                     </a>
@@ -77,6 +77,10 @@
 
                 <div class="collapse" id="collapseProducts" aria-labelledby="headingProducts" data-bs-parent="#sidenavAccordion">
                     <nav class="sb-sidenav-menu-nested nav">
+                        <a class="nav-link" th:href="@{/view/products/new}">
+                            상품 등록
+                        </a>
+
                         <a class="nav-link" th:href="@{/view/products/list}">
                             상품 관리
                         </a>
@@ -265,7 +269,7 @@
                     }
 
                     alert(responseBody?.message || "로그아웃되었습니다.");
-                    window.location.href = "/login";
+                    window.location.href = "/view/login";
                 } catch (error) {
                     console.error("로그아웃 요청 오류:", error);
                     alert("로그아웃 중 오류가 발생했습니다.");

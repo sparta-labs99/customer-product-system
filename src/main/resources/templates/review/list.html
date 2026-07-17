@@ -52,42 +52,41 @@
 
                                 <!-- 3. 검색창 그룹 -->
                                 <div class="input-group input-group-sm shadow-sm" style="width: 240px; height: 31px;">
-                                    <input type="text" id="keywordInput" class="form-control" placeholder="리뷰 내용 검색" style="height: 31px;">
+                                    <input type="text" id="keywordInput" class="form-control" placeholder="상품 명, 작성자 명 검색" style="height: 31px;">
                                     <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button" style="height: 31px;">
                                         <i class="fas fa-search me-1"></i> 검색
                                     </button>
                                 </div>
-
-                                <!-- 4. 맨 오른쪽에 위치한 선택 삭제 버튼 -->
-                                <button class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1 text-nowrap" id="deleteCheckedBtn" type="button" style="height: 31px; font-size: 0.85rem;">
-                                    <i class="fas fa-trash-alt"></i> 선택삭제
-                                </button>
                             </div>
 
                         </div>
                         <div class="table-responsive">
                             <table class="table table-bordered table-hover align-middle text-nowrap">
                                 <thead>
-                            <tr>
-                                <!-- 1. 맨 앞: 전체 선택 체크박스 -->
-                                <th class="text-center" style="width: 50px;">
-                                    <input class="form-check-input" type="checkbox" id="selectAll">
-                                </th>
-                                <th class="text-center" style="width: 70px;">ID</th>
-                                <th style="width: 160px;">상품명</th>
-                                <th class="text-center" style="width: 100px;">카테고리</th>
-                                <th class="text-center" style="width: 90px;">평점</th>
-                                <th>리뷰 내용</th>
-                                <th style="width: 120px;">작성자</th>
-                                <th class="text-center" style="width: 130px;">등록일</th>
-                                <th class="text-center" style="width: 130px;">수정일</th>
-                                <th class="text-center" style="width: 100px;">상품 보기</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <!-- JS가 이 곳에 데이터를 동적으로 채웁니다 -->
-                            </tbody>
-                        </table>
+                                <tr>
+                                    <th class="text-center sortable" data-sort="id" style="width: 70px; cursor: pointer;">
+                                        ID <span class="sort-icon"></span>
+                                    </th>
+                                    <th style="width: 160px;">상품명</th>
+                                    <th class="text-center" style="width: 100px;">카테고리</th>
+                                    <th class="text-center sortable" data-sort="rating" style="width: 90px; cursor: pointer;">
+                                        평점 <span class="sort-icon"></span>
+                                    </th>
+                                    <th>리뷰 내용</th>
+                                    <th style="width: 120px;">작성자</th>
+                                    <th class="text-center sortable" data-sort="createdAt" style="width: 130px; cursor: pointer;">
+                                        등록일 <span class="sort-icon"></span>
+                                    </th>
+                                    <th class="text-center sortable" data-sort="updatedAt" style="width: 130px; cursor: pointer;">
+                                        수정일 <span class="sort-icon"></span>
+                                    </th>
+                                    <th class="text-center" style="width: 100px;">상품 보기</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <!-- JS가 이 곳에 데이터를 동적으로 채웁니다 -->
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -100,6 +99,16 @@
 
 <div th:replace="common/fragments :: common-scripts"></div>
 
+<style>
+    th.sortable:hover {
+        background-color: rgba(0,0,0,0.05);
+    }
+    .sort-icon {
+        font-size: 0.7rem;
+        color: #0d6efd;
+    }
+</style>
+
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // 1. DOM 요소 선택
@@ -110,7 +119,10 @@
         const keywordInput = document.getElementById('keywordInput');
         const searchBtn = document.getElementById('searchBtn');
         const currentPageCountSpan = document.getElementById('totalCount');
-        const deleteCheckedBtn = document.getElementById('deleteCheckedBtn');
+        const sortableHeaders = document.querySelectorAll('th.sortable');
+
+        // 정렬 상태 (기본값: 등록일 최신순/내림차순)
+        let currentSort = { field: 'createdAt', direction: 'desc' };
 
         // 상태 한글 라벨 매핑
         const statusLabels = {
@@ -134,11 +146,24 @@
             document.querySelector('.card-body').appendChild(paginationArea);
         }
 
+        // 정렬 아이콘 갱신 함수
+        function updateSortIcons() {
+            sortableHeaders.forEach(th => {
+                const icon = th.querySelector('.sort-icon');
+                if (th.dataset.sort === currentSort.field) {
+                    icon.textContent = currentSort.direction === 'asc' ? '▲' : '▼';
+                } else {
+                    icon.textContent = '';
+                }
+            });
+        }
+
         // 2. 메인 데이터 로드 함수
         window.loadReviews = function(page = 1) {
             const params = new URLSearchParams({
                 page: page - 1,
-                size: sizeSelect.value
+                size: sizeSelect.value,
+                sort: `${currentSort.field},${currentSort.direction}`
             });
 
             if (keywordInput.value.trim()) params.append('keyword', keywordInput.value.trim());
@@ -155,6 +180,7 @@
                     currentPageCountSpan.textContent = `${data.numberOfElements} / ${data.totalElements}`;
                     renderTable(data.content);
                     renderPagination(data.totalPages, data.number);
+                    updateSortIcons();
                 })
                 .catch(error => {
                     console.error('Error fetching reviews:', error);
@@ -165,7 +191,7 @@
         // 3. 테이블 렌더링 함수
         function renderTable(reviews) {
             if (!reviews || reviews.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="10" class="text-center">데이터가 없습니다.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center">데이터가 없습니다.</td></tr>`;
                 return;
             }
 
@@ -177,9 +203,6 @@
 
                 return `
                 <tr data-id="${review.id}">
-                    <td class="text-center">
-                        <input class="form-check-input row-checkbox" type="checkbox" value="${review.id}">
-                    </td>
                     <td class="text-center">${review.id}</td>
                     <td>${review.productName}</td>
                     <td class="text-center">${categoryLabel}</td>
@@ -240,66 +263,30 @@
         statusSelect.addEventListener('change', () => loadReviews(1));
         sizeSelect.addEventListener('change', () => loadReviews(1));
 
+        // 정렬 헤더 클릭 이벤트
+        sortableHeaders.forEach(th => {
+            th.addEventListener('click', () => {
+                const field = th.dataset.sort;
+                if (currentSort.field === field) {
+                    // 같은 컬럼 클릭 -> 방향 토글
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    // 다른 컬럼 클릭 -> 해당 컬럼 내림차순부터 시작
+                    currentSort.field = field;
+                    currentSort.direction = 'desc';
+                }
+                loadReviews(1);
+            });
+        });
+
         // 6. 초기 데이터 로딩
+        updateSortIcons();
         loadReviews(1);
 
         // 상품 보기 버튼 -> 상품 상세 페이지로 이동
         window.viewProduct = function(productId) {
             window.location.href = `/view/products/${productId}`;
         };
-
-        // 체크박스 선택
-        const selectAllCheckbox = document.getElementById('selectAll');
-        if (selectAllCheckbox) {
-            selectAllCheckbox.addEventListener('change', function() {
-                const rowCheckboxes = document.querySelectorAll('.row-checkbox');
-                rowCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
-            });
-        }
-
-        if (deleteCheckedBtn) {
-            deleteCheckedBtn.addEventListener('click', function() {
-                const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-
-                if (checkedBoxes.length === 0) {
-                    alert('삭제할 리뷰를 선택해 주세요.');
-                    return;
-                }
-
-                const idsToDelete = Array.from(checkedBoxes).map(cb => cb.value);
-
-                if (!confirm(`선택한 ${checkedBoxes.length}개의 리뷰를 정말 삭제하시겠습니까?\n(선택된 리뷰 ID: ${idsToDelete.join(', ')})`)) {
-                    return;
-                }
-
-                deleteCheckedBtn.disabled = true;
-
-                fetch('/reviews', {
-                    method: 'DELETE',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(idsToDelete.map(Number))
-                })
-                    .then(async res => {
-                        if (!res.ok) {
-                            const errorBody = await res.json().catch(() => null);
-                            throw new Error(errorBody?.message ?? '삭제 요청이 실패했습니다.');
-                        }
-                        alert(`선택한 ${idsToDelete.length}개의 리뷰가 삭제되었습니다.`);
-
-                        const selectAllCheckbox = document.getElementById('selectAll');
-                        if (selectAllCheckbox) selectAllCheckbox.checked = false;
-
-                        loadReviews(1);
-                    })
-                    .catch(error => {
-                        console.error('Error deleting reviews:', error);
-                        alert(error.message);
-                    })
-                    .finally(() => {
-                        deleteCheckedBtn.disabled = false;
-                    });
-            });
-        }
     });
 </script>
 </body>
