@@ -5,7 +5,6 @@ import com.example.customerproductsystem.admin.entity.Admin;
 public record AdminUpdateResponse(
         Long id,
         String name,
-        String email,
         String phoneNumber
 ) {
 
@@ -13,7 +12,6 @@ public record AdminUpdateResponse(
         return new AdminUpdateResponse(
                 admin.getId(),
                 admin.getName(),
-                admin.getEmail(),
                 admin.getPhoneNumber()
         );
     }

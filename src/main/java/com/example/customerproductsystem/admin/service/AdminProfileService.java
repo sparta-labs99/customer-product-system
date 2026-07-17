@@ -30,9 +30,7 @@ public class AdminProfileService {
     public MyProfileResponse updateMyProfile(Long adminId, MyProfileUpdateRequest request) {
         Admin admin = findAdmin(adminId);
 
-        validateDuplicateEmailForUpdate(adminId, request.email());
-
-        admin.updateProfile(request.name(), request.email(), request.phoneNumber());
+        admin.updateProfile(request.name(),request.phoneNumber());
 
         return MyProfileResponse.from(admin);
     }
@@ -52,16 +50,6 @@ public class AdminProfileService {
     private Admin findAdmin(Long adminId) {
         return adminRepository.findById(adminId)
                 .orElseThrow(() -> new AdminException.NotFound(adminId));
-    }
-
-    // 이메일 수정 시 이메일 중복검사
-    private void validateDuplicateEmailForUpdate(Long adminId, String email) {
-
-        boolean duplicate = adminRepository.existsByEmailAndIdNot(email, adminId);
-
-        if(duplicate) {
-            throw new AdminException.DuplicateEmail();
-        }
     }
 
     // 비밀번호 비교

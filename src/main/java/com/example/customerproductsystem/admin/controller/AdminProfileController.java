@@ -43,8 +43,6 @@ public class AdminProfileController {
 
         MyProfileResponse response = adminProfileService.updateMyProfile(loginAdmin.id(), updateRequest);
 
-        updateLoginSession(request, loginAdmin, response);
-
         return ResponseEntity.ok(
                 ApiResponse.success(
                         "프로필 정보가 수정되었습니다.",
@@ -75,22 +73,5 @@ public class AdminProfileController {
         HttpSession session = request.getSession(false);
 
         return (LoginAdmin) session.getAttribute(SessionConst.LOGIN_ADMIN);
-    }
-
-    // 프로필 수정으로 이메일이 바뀌면 기존 세션 정보도 갱신
-    private void updateLoginSession(
-            HttpServletRequest request,
-            LoginAdmin loginAdmin,
-            MyProfileResponse response
-    ) {
-        if(loginAdmin.email().equals(response.email())) {
-            return;
-        }
-
-        HttpSession session = request.getSession(false);
-
-        LoginAdmin update = new LoginAdmin(loginAdmin.id(), response.email(), loginAdmin.role());
-
-        session.setAttribute(SessionConst.LOGIN_ADMIN, update);
     }
 }
