@@ -1,6 +1,7 @@
 package com.example.customerproductsystem.order.controller;
 
 import com.example.customerproductsystem.admin.entity.AdminRole;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
 import org.springframework.stereotype.Controller;
@@ -27,8 +28,11 @@ public class OrderViewController {
 
     @GetMapping("/new")
     public String orderCreatePage(@SessionAttribute(name = SessionConst.LOGIN_ADMIN, required = false) LoginAdmin sessionAdmin) {
-        if (sessionAdmin == null || sessionAdmin.role() != AdminRole.CS_ADMIN) {
-            return "error/401";
+        if (sessionAdmin == null) {
+            throw new AdminException.NotLogin();
+        }
+        if (sessionAdmin.role() != AdminRole.CS_ADMIN) {
+            throw new AdminException.CsAdminRequired();
         }
         return "order/order";
     }

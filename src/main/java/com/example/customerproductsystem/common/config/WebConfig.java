@@ -34,7 +34,9 @@ public class WebConfig implements WebMvcConfigurer {
                 )
                 .excludePathPatterns(
                         "/login",
+                        "/view/login",
                         "/signup",
+                        "/view/signup",
                         "/css/**",
                         "/js/**",
                         "/assets/**",
@@ -51,7 +53,9 @@ public class WebConfig implements WebMvcConfigurer {
                 )
                 .excludePathPatterns(
                         "/signup",
+                        "/view/signup",
                         "/login",
+                        "/view/login",
                         "/logout",
                         "/admins/me",
                         "/admins/me/**"

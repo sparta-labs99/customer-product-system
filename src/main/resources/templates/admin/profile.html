@@ -23,13 +23,24 @@
                         내 프로필
                     </h1>
 
-                    <a
-                            th:href="@{/}"
-                            class="btn btn-outline-secondary"
-                    >
-                        <i class="fas fa-arrow-left me-1"></i>
-                        메인으로
-                    </a>
+                    <div>
+                        <button
+                                type="button"
+                                class="btn btn-primary me-2"
+                                data-bs-toggle="modal"
+                                data-bs-target="#passwordChangeModal"
+                        >
+                            <i class="fas fa-key me-1"></i>
+                            비밀번호 변경
+                        </button>
+                        <a
+                                th:href="@{/}"
+                                class="btn btn-outline-secondary"
+                        >
+                            <i class="fas fa-arrow-left me-1"></i>
+                            메인으로
+                        </a>
+                    </div>
 
                 </div>
 
@@ -320,6 +331,9 @@
 
                 </div>
 
+                <!-- Password Change Modal Fragment -->
+                <div th:replace="~{admin/password :: password-change-modal}"></div>
+
             </div>
         </main>
 
@@ -450,7 +464,7 @@
                     );
 
                     window.location.href =
-                        "/login";
+                        "/view/login";
 
                     return;
                 }
@@ -747,7 +761,7 @@
                     );
 
                     window.location.href =
-                        "/login";
+                        "/view/login";
 
                     return;
                 }
@@ -1051,6 +1065,74 @@
             successMessage.classList.add("d-none");
         }
 
+
+        // --- 비밀번호 변경 모달 스크립트 ---
+        const passwordForm = document.getElementById("passwordChangeForm");
+        const currentPasswordInput = document.getElementById("currentPassword");
+        const newPasswordInput = document.getElementById("newPassword");
+        const newPasswordConfirmInput = document.getElementById("newPasswordConfirm");
+        const changePasswordBtn = document.getElementById("changePasswordBtn");
+        const passwordChangeModalElement = document.getElementById("passwordChangeModal");
+
+        passwordChangeModalElement.addEventListener('hidden.bs.modal', function () {
+            passwordForm.reset();
+        });
+
+        passwordForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            hideError();
+            hideSuccess();
+
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const newPasswordConfirm = newPasswordConfirmInput.value;
+
+            if (newPassword !== newPasswordConfirm) {
+                alert("새 비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+                return;
+            }
+
+            changePasswordBtn.disabled = true;
+
+            try {
+                const response = await fetch("/admins/me/password", {
+                    method: "PATCH",
+                    credentials: "same-origin",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json"
+                    },
+                    body: JSON.stringify({
+                        currentPassword: currentPassword,
+                        newPassword: newPassword
+                    })
+                });
+
+                const responseBody = await readApiResponse(response);
+
+                if (!response.ok || !responseBody.success) {
+                    throw createApiError(responseBody, response.status);
+                }
+
+                // 성공 시 모달 닫기
+                bootstrap.Modal.getInstance(passwordChangeModalElement).hide();
+                showSuccess(responseBody.message || "비밀번호가 성공적으로 변경되었습니다.");
+
+            } catch (error) {
+                console.error("비밀번호 변경 오류:", error);
+
+                if (error.status === 401) {
+                    alert(error.message || "로그인이 필요합니다.");
+                    window.location.href = "/view/login";
+                    return;
+                }
+
+                alert(getDisplayErrorMessage(error));
+            } finally {
+                changePasswordBtn.disabled = false;
+            }
+        });
 
         loadMyProfile();
     });
