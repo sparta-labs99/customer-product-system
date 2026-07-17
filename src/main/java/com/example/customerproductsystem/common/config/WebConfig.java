@@ -57,9 +57,9 @@ public class WebConfig implements WebMvcConfigurer {
                         "/admins/me/**"
                 );
 
-        // CS 관리자 권한 인터셉터
+        // CS 관리자 권한 인터셉터 (주문 생성 전용)
         registry.addInterceptor(csAdminCheckInterceptor)
                 .order(3)
-                .addPathPatterns("/orders/**");
+                .addPathPatterns("/orders", "/orders/");
     }
 }
