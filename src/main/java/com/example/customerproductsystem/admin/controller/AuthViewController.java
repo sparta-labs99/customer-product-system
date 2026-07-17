@@ -23,9 +23,7 @@ public class AuthViewController {
     }
 
     @GetMapping("/profile")
-    public String profilePage() {
-        return "admin/profile";
-    }
+    public String profilePage() {return "admin/profile";}
 
     @GetMapping("/view/admins")
     public String adminListPage() {return "admin/list";}

@@ -29,7 +29,6 @@
                             <div class="col-md-7 d-flex justify-content-end align-items-center gap-2 flex-wrap">
                                 <select id="roleSelect" class="form-select form-select-sm shadow-sm" style="width: 130px; cursor: pointer; height: 31px;">
                                     <option value="">전체 역할</option>
-                                    <option value="SUPER_ADMIN">슈퍼 관리자</option>
                                     <option value="OPERATION_ADMIN">운영 관리자</option>
                                     <option value="CS_ADMIN">CS 관리자</option>
                                 </select>
@@ -40,6 +39,7 @@
                                     <option value="SUSPENDED">정지</option>
                                     <option value="PENDING">승인 대기</option>
                                     <option value="REJECTED">거부</option>
+                                    <option value="DELETED">삭제</option>
                                 </select>
                                 <div class="input-group input-group-sm shadow-sm" style="width: 260px; height: 31px;">
                                     <input type="text" id="keywordInput" class="form-control" placeholder="이름 또는 이메일 검색" style="height: 31px;">
@@ -47,9 +47,6 @@
                                         <i class="fas fa-search me-1"></i> 검색
                                     </button>
                                 </div>
-                                <button class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1" id="deleteCheckedBtn" type="button" style="height: 31px; font-size: 0.85rem;">
-                                    <i class="fas fa-trash-alt"></i> 선택삭제
-                                </button>
                             </div>
                         </div>
                         <table class="table table-bordered table-hover align-middle">
@@ -128,7 +125,8 @@
             INACTIVE: '비활성',
             SUSPENDED: '정지',
             PENDING: '승인 대기',
-            REJECTED: '거부'
+            REJECTED: '거부',
+            DELETED: '삭제'
         };
 
         const statusBadgeClasses = {
@@ -136,7 +134,8 @@
             INACTIVE: 'bg-secondary',
             SUSPENDED: 'bg-warning text-dark',
             PENDING: 'bg-info text-dark',
-            REJECTED: 'bg-danger'
+            REJECTED: 'bg-danger',
+            DELETED: 'bg-dark'
         };
 
         let paginationArea = document.querySelector('.pagination');
@@ -206,9 +205,9 @@
                         <td class="text-center"><input class="form-check-input row-checkbox" type="checkbox" value="${admin.id}"></td>
                         <td class="text-center">${admin.id}</td>
                         <td>
-                            <button class="btn btn-link p-0 text-decoration-none fw-semibold" type="button" onclick="viewAdmin(${admin.id})">
+                            <a class="btn btn-link p-0 text-decoration-none fw-semibold" href="/view/admins/${admin.id}">
                                 ${escapeHtml(admin.name ?? '')}
-                            </button>
+                            </a>
                         </td>
                         <td>${escapeHtml(admin.email ?? '')}</td>
                         <td>${escapeHtml(admin.phoneNumber ?? '-')}</td>
@@ -219,9 +218,11 @@
                         </td>
                         <td>
                             <div class="d-flex align-items-center gap-1">
-                                <select class="form-select form-select-sm" onchange="changeAdminStatus(${admin.id}, this, '${admin.status}')">
-                                    ${createStatusOptions(admin.status)}
-                                </select>
+                                ${admin.status !== 'DELETED' ? `
+                                    <select class="form-select form-select-sm" onchange="changeAdminStatus(${admin.id}, this, '${admin.status}')">
+                                        ${createStatusOptions(admin.status)}
+                                    </select>
+                                ` : ''}
                                 <span class="badge ${statusBadgeClass}">${statusLabel}</span>
                             </div>
                         </td>
@@ -485,39 +486,41 @@
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
         });
 
-        deleteCheckedBtn.addEventListener('click', function () {
-            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
-            if (checkedBoxes.length === 0) {
-                alert('삭제할 관리자를 선택해 주세요.');
-                return;
-            }
+        if (deleteCheckedBtn) {
+            deleteCheckedBtn.addEventListener('click', function () {
+                const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+                if (checkedBoxes.length === 0) {
+                    alert('삭제할 관리자를 선택해 주세요.');
+                    return;
+                }
 
-            const idsToDelete = Array.from(checkedBoxes).map(cb => Number(cb.value));
-            if (!confirm(`선택한 ${checkedBoxes.length}명의 관리자를 정말 삭제하시겠습니까?\n(선택된 관리자 ID: ${idsToDelete.join(', ')})`)) return;
+                const idsToDelete = Array.from(checkedBoxes).map(cb => Number(cb.value));
+                if (!confirm(`선택한 ${checkedBoxes.length}명의 관리자를 정말 삭제하시겠습니까?\n(선택된 관리자 ID: ${idsToDelete.join(', ')})`)) return;
 
-            deleteCheckedBtn.disabled = true;
+                deleteCheckedBtn.disabled = true;
 
-            Promise.all(
-                idsToDelete.map(adminId =>
-                    fetch(`/admins/${adminId}`, {
-                        method: 'DELETE',
-                        credentials: 'same-origin',
-                        headers: { 'Accept': 'application/json' }
-                    }).then(async response => {
-                        const body = await readResponseBody(response);
-                        if (!response.ok || !body.success) throw createError(body, response.status);
-                        return body;
-                    })
+                Promise.all(
+                    idsToDelete.map(adminId =>
+                        fetch(`/admins/${adminId}`, {
+                            method: 'DELETE',
+                            credentials: 'same-origin',
+                            headers: { 'Accept': 'application/json' }
+                        }).then(async response => {
+                            const body = await readResponseBody(response);
+                            if (!response.ok || !body.success) throw createError(body, response.status);
+                            return body;
+                        })
+                    )
                 )
-            )
-                .then(() => {
-                    showSuccess(`선택한 ${idsToDelete.length}명의 관리자가 삭제되었습니다.`);
-                    selectAllCheckbox.checked = false;
-                    loadAdmins(1);
-                })
-                .catch(handleError)
-                .finally(() => { deleteCheckedBtn.disabled = false; });
-        });
+                    .then(() => {
+                        showSuccess(`선택한 ${idsToDelete.length}명의 관리자가 삭제되었습니다.`);
+                        selectAllCheckbox.checked = false;
+                        loadAdmins(1);
+                    })
+                    .catch(handleError)
+                    .finally(() => { deleteCheckedBtn.disabled = false; });
+            });
+        }
 
         window.viewAdmin = function (id) {
             window.location.href = `/view/admins/${id}`;

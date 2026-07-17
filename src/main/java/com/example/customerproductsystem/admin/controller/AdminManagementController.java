@@ -1,6 +1,8 @@
 package com.example.customerproductsystem.admin.controller;
 import com.example.customerproductsystem.admin.dto.*;
 import com.example.customerproductsystem.admin.service.AdminService;
+import com.example.customerproductsystem.auth.LoginAdmin;
+import com.example.customerproductsystem.auth.SessionConst;
 import com.example.customerproductsystem.common.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -114,14 +116,13 @@ public class AdminManagementController {
 
     // 관리자 삭제
     @DeleteMapping("/{adminId}")
-    public ResponseEntity<ApiResponse<Void>> deleteAdmin(@PathVariable Long adminId) {
-        adminService.deleteAdmin(adminId);
+    public ResponseEntity<Void> deleteAdmin(
+            @PathVariable Long adminId,
+            @SessionAttribute(name = SessionConst.LOGIN_ADMIN)
+            LoginAdmin loginAdmin
+    ) {
+        adminService.deleteAdmin(adminId, loginAdmin.id());
 
-        return ResponseEntity.ok(
-                ApiResponse.success(
-                        "관리자가 삭제되었습니다.",
-                        null
-                )
-        );
+        return ResponseEntity.noContent().build();
     }
 }

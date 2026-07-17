@@ -20,4 +20,6 @@ public interface AdminRepository extends JpaRepository<Admin, Long>, JpaSpecific
     long countByRoleAndStatus(AdminRole role, AdminStatus status);
 
     long countByStatus(AdminStatus status);
+
+    Optional<Admin> findByIdAndStatusNot(Long id, AdminStatus status);
 }

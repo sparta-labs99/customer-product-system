@@ -84,6 +84,16 @@ public class AdminException {
         }
     }
 
+    public static class Deleted extends CustomException {
+
+        public Deleted() {
+            super(
+                    ErrorCode.ADMIN_DELETED,
+                    "삭제된 관리자입니다."
+            );
+        }
+    }
+
     public static class SuperAdminRequired extends CustomException {
 
         public SuperAdminRequired() {
