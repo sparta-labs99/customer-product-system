@@ -31,9 +31,10 @@ public class OrderViewController {
         if (sessionAdmin == null) {
             throw new AdminException.NotLogin();
         }
-        if (sessionAdmin.role() != AdminRole.CS_ADMIN) {
+        if (sessionAdmin.role() != AdminRole.SUPER_ADMIN && sessionAdmin.role() != AdminRole.CS_ADMIN) {
             throw new AdminException.CsAdminRequired();
         }
+
         return "order/order";
     }
 }
