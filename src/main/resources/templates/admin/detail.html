@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="common/fragments :: common-head">
+</head>
+
+<body class="sb-nav-fixed" th:attr="data-admin-id=${adminId}">
+
+<nav th:replace="common/fragments :: top-nav"></nav>
+
+<div id="layoutSidenav">
+    <div th:replace="common/fragments :: side-nav"></div>
+
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+
+                <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+                    <h1 class="mb-0">관리자 상세</h1>
+
+                    <a th:href="@{/view/admins}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>
+                        목록으로
+                    </a>
+                </div>
+
+                <div id="loadingMessage" class="alert alert-info">
+                    관리자 정보를 불러오는 중입니다.
+                </div>
+
+                <div id="errorMessage" class="alert alert-danger d-none"></div>
+                <div id="successMessage" class="alert alert-success d-none"></div>
+
+                <div id="detailArea" class="row d-none">
+
+                    <div class="col-xl-4">
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-body text-center py-5">
+
+                                <div class="mb-4">
+                                    <i class="fas fa-user-circle text-secondary"
+                                       style="font-size: 7rem;"></i>
+                                </div>
+
+                                <h4 id="summaryName" class="fw-bold mb-2">-</h4>
+                                <p id="summaryEmail" class="text-muted mb-3">-</p>
+
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <span id="summaryRoleBadge" class="badge bg-secondary">-</span>
+                                    <span id="summaryStatusBadge" class="badge bg-secondary">-</span>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-8">
+                        <div class="card mb-4 shadow-sm">
+
+                            <div class="card-header">
+                                <i class="fas fa-user-cog me-1"></i>
+                                관리자 정보
+                            </div>
+
+                            <div class="card-body">
+                                <form id="adminUpdateForm">
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="adminId"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            관리자 ID
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="adminId"
+                                                   type="text"
+                                                   class="form-control"
+                                                   readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="name"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            이름
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="name"
+                                                   type="text"
+                                                   class="form-control"
+                                                   placeholder="관리자 이름"
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="email"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            이메일
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="email"
+                                                   type="email"
+                                                   class="form-control"
+                                                   placeholder="admin@example.com"
+                                                   required>
+                                        </div>
+                                    </div>
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="phoneNumber"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            전화번호
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="phoneNumber"
+                                                   type="tel"
+                                                   class="form-control"
+                                                   placeholder="010-1234-5678"
+                                                   maxlength="13"
+                                                   required>
+
+                                            <div class="form-text">
+                                                010-XXXX-XXXX 형식으로 입력해 주세요.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="role"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            역할
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="role"
+                                                   type="text"
+                                                   class="form-control"
+                                                   readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="status"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            상태
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="status"
+                                                   type="text"
+                                                   class="form-control"
+                                                   readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row border-bottom py-3 align-items-center">
+                                        <label for="createdAt"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            가입일
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="createdAt"
+                                                   type="text"
+                                                   class="form-control"
+                                                   readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="row py-3 align-items-center">
+                                        <label for="approvedAt"
+                                               class="col-sm-3 col-form-label fw-bold text-secondary">
+                                            승인일
+                                        </label>
+
+                                        <div class="col-sm-9">
+                                            <input id="approvedAt"
+                                                   type="text"
+                                                   class="form-control"
+                                                   readonly>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end gap-2 mt-4">
+                                        <button id="deleteBtn"
+                                                type="button"
+                                                class="btn btn-danger">
+                                            <i class="fas fa-trash-alt me-1"></i>
+                                            삭제
+                                        </button>
+
+                                        <button id="updateBtn"
+                                                type="submit"
+                                                class="btn btn-primary">
+                                            <i class="fas fa-save me-1"></i>
+                                            정보 수정
+                                        </button>
+                                    </div>
+
+                                </form>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+        <footer th:replace="common/fragments :: footer"></footer>
+    </div>
+</div>
+
+<div th:replace="common/fragments :: common-scripts"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const adminId =
+            document.body.dataset.adminId
+            || window.location.pathname.split("/").filter(Boolean).pop();
+
+        const loadingMessage = document.getElementById("loadingMessage");
+        const errorMessage = document.getElementById("errorMessage");
+        const successMessage = document.getElementById("successMessage");
+        const detailArea = document.getElementById("detailArea");
+        const adminUpdateForm = document.getElementById("adminUpdateForm");
+        const updateButton = document.getElementById("updateBtn");
+        const deleteButton = document.getElementById("deleteBtn");
+        const nameInput = document.getElementById("name");
+        const emailInput = document.getElementById("email");
+        const phoneNumberInput = document.getElementById("phoneNumber");
+
+        const roleLabels = {
+            SUPER_ADMIN: "슈퍼 관리자",
+            OPERATION_ADMIN: "운영 관리자",
+            CS_ADMIN: "CS 관리자"
+        };
+
+        const statusLabels = {
+            ACTIVE: "활성",
+            INACTIVE: "비활성",
+            SUSPENDED: "정지",
+            PENDING: "승인 대기",
+            REJECTED: "거부"
+        };
+
+        const roleBadgeClasses = {
+            SUPER_ADMIN: "bg-danger",
+            OPERATION_ADMIN: "bg-primary",
+            CS_ADMIN: "bg-info text-dark"
+        };
+
+        const statusBadgeClasses = {
+            ACTIVE: "bg-success",
+            INACTIVE: "bg-secondary",
+            SUSPENDED: "bg-warning text-dark",
+            PENDING: "bg-info text-dark",
+            REJECTED: "bg-danger"
+        };
+
+        loadAdminDetail();
+
+        function loadAdminDetail() {
+            hideMessages();
+
+            loadingMessage.classList.remove("d-none");
+            detailArea.classList.add("d-none");
+
+            fetch(`/admins/${adminId}`, {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                }
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+
+                    if (!response.ok || !body.success) {
+                        throw createError(body, response.status);
+                    }
+
+                    if (!body.data) {
+                        throw new Error("관리자 상세 데이터가 없습니다.");
+                    }
+
+                    return body.data;
+                })
+                .then(admin => {
+                    renderAdmin(admin);
+
+                    loadingMessage.classList.add("d-none");
+                    detailArea.classList.remove("d-none");
+                })
+                .catch(error => {
+                    console.error("관리자 상세 조회 오류:", error);
+                    loadingMessage.classList.add("d-none");
+                    handleError(error);
+                });
+        }
+
+        function renderAdmin(admin) {
+            document.getElementById("adminId").value = admin.id ?? "";
+            nameInput.value = admin.name ?? "";
+            emailInput.value = admin.email ?? "";
+            phoneNumberInput.value = admin.phoneNumber ?? "";
+
+            document.getElementById("role").value =
+                roleLabels[admin.role] ?? admin.role ?? "-";
+
+            document.getElementById("status").value =
+                statusLabels[admin.status] ?? admin.status ?? "-";
+
+            document.getElementById("createdAt").value =
+                formatDateTime(admin.createdAt);
+
+            document.getElementById("approvedAt").value =
+                formatDateTime(admin.approvedAt);
+
+            document.getElementById("summaryName").textContent =
+                admin.name ?? "-";
+
+            document.getElementById("summaryEmail").textContent =
+                admin.email ?? "-";
+
+            const roleBadge =
+                document.getElementById("summaryRoleBadge");
+
+            roleBadge.textContent =
+                roleLabels[admin.role] ?? admin.role ?? "-";
+
+            roleBadge.className =
+                `badge ${roleBadgeClasses[admin.role] ?? "bg-secondary"}`;
+
+            const statusBadge =
+                document.getElementById("summaryStatusBadge");
+
+            statusBadge.textContent =
+                statusLabels[admin.status] ?? admin.status ?? "-";
+
+            statusBadge.className =
+                `badge ${statusBadgeClasses[admin.status] ?? "bg-secondary"}`;
+        }
+
+        adminUpdateForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+
+            hideMessages();
+
+            const requestBody = {
+                name: nameInput.value.trim(),
+                email: emailInput.value.trim(),
+                phoneNumber: phoneNumberInput.value.trim()
+            };
+
+            if (!requestBody.name) {
+                showError("이름은 필수입니다.");
+                return;
+            }
+
+            if (!requestBody.email) {
+                showError("이메일은 필수입니다.");
+                return;
+            }
+
+            if (!isValidEmail(requestBody.email)) {
+                showError("올바른 이메일 형식이 아닙니다.");
+                return;
+            }
+
+            if (!requestBody.phoneNumber) {
+                showError("전화번호는 필수입니다.");
+                return;
+            }
+
+            if (!isValidPhoneNumber(requestBody.phoneNumber)) {
+                showError("전화번호는 010-XXXX-XXXX 형식이어야 합니다.");
+                return;
+            }
+
+            updateButton.disabled = true;
+            updateButton.textContent = "수정 중...";
+
+            fetch(`/admins/${adminId}`, {
+                method: "PATCH",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify(requestBody)
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+
+                    if (!response.ok || !body.success) {
+                        throw createError(body, response.status);
+                    }
+
+                    return body;
+                })
+                .then(body => {
+                    if (body.data) {
+                        renderAdmin(body.data);
+                    } else {
+                        loadAdminDetail();
+                    }
+
+                    showSuccess(
+                        body.message || "관리자 정보가 수정되었습니다."
+                    );
+                })
+                .catch(error => {
+                    console.error("관리자 정보 수정 오류:", error);
+                    handleError(error);
+                })
+                .finally(() => {
+                    updateButton.disabled = false;
+                    updateButton.innerHTML =
+                        '<i class="fas fa-save me-1"></i> 정보 수정';
+                });
+        });
+
+        deleteButton.addEventListener("click", function () {
+            if (!confirm("해당 관리자를 정말 삭제하시겠습니까?")) {
+                return;
+            }
+
+            deleteButton.disabled = true;
+
+            fetch(`/admins/${adminId}`, {
+                method: "DELETE",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                }
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+
+                    if (!response.ok || !body.success) {
+                        throw createError(body, response.status);
+                    }
+
+                    return body;
+                })
+                .then(body => {
+                    alert(body.message || "관리자가 삭제되었습니다.");
+                    window.location.href = "/view/admins";
+                })
+                .catch(error => {
+                    console.error("관리자 삭제 오류:", error);
+                    handleError(error);
+                })
+                .finally(() => {
+                    deleteButton.disabled = false;
+                });
+        });
+
+        phoneNumberInput.addEventListener("input", function (event) {
+            const numbers =
+                event.target.value
+                    .replace(/[^0-9]/g, "")
+                    .slice(0, 11);
+
+            let formatted = numbers;
+
+            if (numbers.length > 7) {
+                formatted =
+                    numbers.slice(0, 3)
+                    + "-"
+                    + numbers.slice(3, 7)
+                    + "-"
+                    + numbers.slice(7);
+            } else if (numbers.length > 3) {
+                formatted =
+                    numbers.slice(0, 3)
+                    + "-"
+                    + numbers.slice(3);
+            }
+
+            event.target.value = formatted;
+        });
+
+        async function readResponseBody(response) {
+            const text = await response.text();
+
+            if (!text) {
+                return {
+                    success: response.ok,
+                    code: response.status,
+                    message:
+                        response.ok
+                            ? "요청에 성공하였습니다."
+                            : "요청 처리에 실패했습니다.",
+                    errorCode: null,
+                    data: null
+                };
+            }
+
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                return {
+                    success: false,
+                    code: response.status,
+                    message: "서버 응답을 해석하지 못했습니다.",
+                    errorCode: "INVALID_RESPONSE",
+                    data: null
+                };
+            }
+        }
+
+        function createError(body, httpStatus) {
+            const error =
+                new Error(
+                    body?.message
+                    ?? `요청 처리에 실패했습니다. (${httpStatus})`
+                );
+
+            error.status = body?.code ?? httpStatus;
+            error.errorCode = body?.errorCode ?? null;
+
+            return error;
+        }
+
+        function handleError(error) {
+            if (error.status === 401) {
+                alert(error.message || "로그인이 필요합니다.");
+                window.location.href = "/login";
+                return;
+            }
+
+            if (error.status === 403) {
+                alert(error.message || "슈퍼 관리자 권한이 필요합니다.");
+                window.location.href = "/";
+                return;
+            }
+
+            const message =
+                error.errorCode
+                    ? `${error.message} [${error.errorCode}]`
+                    : error.message;
+
+            showError(message);
+        }
+
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function isValidPhoneNumber(phoneNumber) {
+            return /^010-\d{4}-\d{4}$/.test(phoneNumber);
+        }
+
+        function formatDateTime(value) {
+            if (!value) {
+                return "-";
+            }
+
+            const date = new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+
+            return date.toLocaleString(
+                "ko-KR",
+                {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+        function showError(message) {
+            successMessage.textContent = "";
+            successMessage.classList.add("d-none");
+
+            errorMessage.textContent =
+                message || "요청 처리에 실패했습니다.";
+
+            errorMessage.classList.remove("d-none");
+        }
+
+        function showSuccess(message) {
+            errorMessage.textContent = "";
+            errorMessage.classList.add("d-none");
+
+            successMessage.textContent =
+                message || "요청에 성공했습니다.";
+
+            successMessage.classList.remove("d-none");
+        }
+
+        function hideMessages() {
+            errorMessage.textContent = "";
+            errorMessage.classList.add("d-none");
+
+            successMessage.textContent = "";
+            successMessage.classList.add("d-none");
+        }
+    });
+</script>
+
+</body>
+</html>

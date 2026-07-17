@@ -6,6 +6,7 @@ import com.example.customerproductsystem.admin.dto.PasswordChangeRequest;
 import com.example.customerproductsystem.admin.service.AdminProfileService;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
+import com.example.customerproductsystem.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -21,17 +22,19 @@ public class AdminProfileController {
     private final AdminProfileService adminProfileService;
 
     @GetMapping
-    public ResponseEntity<MyProfileResponse> getMyProfile(HttpServletRequest request) {
+    public ResponseEntity<ApiResponse<MyProfileResponse>> getMyProfile(HttpServletRequest request) {
 
         LoginAdmin loginAdmin = getLoginAdmin(request);
 
         MyProfileResponse response = adminProfileService.getMyProfile(loginAdmin.id());
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success(response)
+        );
     }
 
     @PatchMapping
-    public ResponseEntity<MyProfileResponse> updateMyProfile(
+    public ResponseEntity<ApiResponse<MyProfileResponse>> updateMyProfile(
             HttpServletRequest request,
             @Valid @RequestBody MyProfileUpdateRequest updateRequest
     ) {
@@ -42,11 +45,16 @@ public class AdminProfileController {
 
         updateLoginSession(request, loginAdmin, response);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "프로필 정보가 수정되었습니다.",
+                        response
+                )
+        );
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<Void> changedPassword(
+    public ResponseEntity<ApiResponse<Void>> changedPassword(
             HttpServletRequest request,
             @Valid @RequestBody PasswordChangeRequest passwordRequest
     ) {
@@ -54,7 +62,12 @@ public class AdminProfileController {
 
         adminProfileService.changedPassword(loginAdmin.id(), passwordRequest);
 
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(
+                ApiResponse.success(
+                        "비밀번호가 변경되었습니다.",
+                        null
+                )
+        );
     }
 
     // 현재 세션에서 로그인 관리자 정보를 가져온다.
@@ -80,5 +93,4 @@ public class AdminProfileController {
 
         session.setAttribute(SessionConst.LOGIN_ADMIN, update);
     }
-
 }

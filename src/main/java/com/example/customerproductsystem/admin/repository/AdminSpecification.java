@@ -48,8 +48,16 @@ public class AdminSpecification {
             if(status == null) {
                 return null;
             }
-
             return criteriaBuilder.equal(root.get("status"), status);
         });
+    }
+
+    // 슈퍼 관리자는 제외
+    public static Specification<Admin> excludeSuperAdmin() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.notEqual(
+                        root.get("role"),
+                        AdminRole.SUPER_ADMIN
+                );
     }
 }

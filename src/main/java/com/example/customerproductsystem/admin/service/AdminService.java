@@ -42,14 +42,18 @@ public class AdminService {
                 sort
         );
 
-        Specification<Admin> specification =
-                Specification
-                        .where(AdminSpecification.keywordContains(condition.getKeyword()))
-                        .and(AdminSpecification.roleEquals(condition.getRole()))
-                        .and(AdminSpecification.statusEquals(condition.getStatus()));
+        Specification<Admin> spec = Specification.where(
+                AdminSpecification.excludeSuperAdmin()
+        ).and(
+                AdminSpecification.keywordContains(condition.getKeyword())
+        ).and(
+                AdminSpecification.roleEquals(condition.getRole())
+        ).and(
+                AdminSpecification.statusEquals(condition.getStatus())
+        );
 
         Page<AdminSummaryResponse> responsePage = adminRepository
-                .findAll(specification, pageable)
+                .findAll(spec, pageable)
                 .map(AdminSummaryResponse::from);
 
         return PageResponse.from((responsePage));

@@ -6,12 +6,10 @@ import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
-import com.example.customerproductsystem.common.error.CustomException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -24,33 +22,35 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 
-        // false를 사요하면 세션이 없을 때 새로운 세션을 만들지 않는다.
+
+        // false를 전달하면 기존 세션이 없는 경우 새로운 세션을 생성하지 않는다.
         HttpSession session = request.getSession(false);
 
-        if(session == null) {
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. ");
+
+        // 세션 자체가 없다면 로그인하지 않은 요청이다.
+        if (session == null) {
+            throw new AdminException.NotLogin();
         }
 
         Object sessionValue = session.getAttribute(SessionConst.LOGIN_ADMIN);
 
-        // 세션은 있지만 로그인 정보가 없다면 정상적인 로그인 세션으로 볼 수 없다.
-        if(!(sessionValue instanceof LoginAdmin loginAdmin)) {
+        // 세션은 존재하지만 로그인 관리자 정보가 없거나타입이 올바르지 않다면 유효하지 않은 세션이다.
+        if (!(sessionValue instanceof LoginAdmin loginAdmin)) {
             session.invalidate();
-            throw new CustomException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. ");
+            throw new AdminException.InvalidSession();
         }
 
-        // 세션에 저장된 관리자 ID로 현재 DB 관리자 정보를 조회
-        // 세션 생성 이후 관리자가 삭제됐을 수 있기 때문에 실제 DB의 존재 여부를 다시 확인
+        /* 세션에 저장된 관리자 ID를 기준으로현재 DB 관리자 정보를 다시 조회한다.
+         * 로그인 이후 관리자가 삭제됐을 수도 있으므로 세션 정보만 신뢰하지 않는다. */
         Admin admin = adminRepository.findById(loginAdmin.id())
-                .orElseThrow(() -> {
-                    session.invalidate();
-                    return new AdminException.InvalidSession();
-                });
+                        .orElseThrow(() -> { session.invalidate();
+                            return new AdminException.InvalidSession();
+                        });
 
-        // 로그인 이후에 관리자가 정지-비활성화-거부 상태로 변경됐을 가능성 확인. (ACTIVE가 아니면 기존 로그인 세션 무효)
+        /* 로그인 이후 관리자 상태가 정지, 비활성, 거부 등으로 변경됐는지 검사한다. */
         validateActiveStatus(admin, session);
 
-        // 세션에 저장된 정보가 오래된 정보일 수 있기 때문에 현재 DB 정보를 기준으로 세션 갱신
+        /* DB의 이메일이나 역할이 변경된 경우 최신 정보로 세션을 갱신한다. */
         refreshLoginSession(admin, loginAdmin, session);
 
         return true;
@@ -58,22 +58,34 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
     private void validateActiveStatus(Admin admin, HttpSession session) {
 
-        if(admin.getStatus() == AdminStatus.ACTIVE) {
+        AdminStatus status = admin.getStatus();
+
+        if (status == AdminStatus.ACTIVE) {
             return;
         }
 
-        // ACTIVE가 아니면 더 이상 사용할 수 없는 계정이므로 기존 세션도 함께 폐기
+        /* ACTIVE가 아닌 계정은 더 이상 현재 세션을 사용할 수 없으므로 세션을 폐기한다.*/
         session.invalidate();
 
-        String message = switch (admin.getStatus()) {
-            case PENDING -> "승인 대기 중인 관리자 입니다.";
-            case REJECTED -> "가입 신청이 거부된 관리자입니다.";
-            case SUSPENDED -> "정지된 관리자입니다.";
-            case INACTIVE -> "비활성화된 관리자입니다.";
-            case ACTIVE -> throw new IllegalStateException("ACTIVE 상태는 위에서 처리되었습니다.");
-        };
+        switch (status) {
 
-        throw new CustomException(HttpStatus.FORBIDDEN, message);
+            case PENDING ->
+                    throw new AdminException.Pending();
+
+            case REJECTED ->
+                    throw new AdminException.Rejected();
+
+            case SUSPENDED ->
+                    throw new AdminException.Suspended();
+
+            case INACTIVE ->
+                    throw new AdminException.Inactive();
+
+            case ACTIVE ->
+                    throw new IllegalStateException(
+                            "ACTIVE 상태는 위에서 처리되었습니다."
+                    );
+        }
     }
 
     private void refreshLoginSession(Admin admin, LoginAdmin loginAdmin, HttpSession session) {
@@ -82,10 +94,15 @@ public class LoginCheckInterceptor implements HandlerInterceptor {
 
         boolean roleChanged = admin.getRole() != loginAdmin.role();
 
-        if(!emailChanged && !roleChanged) {
+        /* 이메일과 역할이 모두 동일하면 세션을 갱신할 필요가 없다.*/
+        if (!emailChanged && !roleChanged) {
             return;
         }
 
-        session.setAttribute(SessionConst.LOGIN_ADMIN, LoginAdmin.from(admin));
+        /*현재 DB 정보를 기준으로 로그인 세션을 갱신한다.*/
+        session.setAttribute(
+                SessionConst.LOGIN_ADMIN,
+                LoginAdmin.from(admin)
+        );
     }
 }
