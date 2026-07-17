@@ -4,8 +4,10 @@ import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.common.entity.BaseEntity;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.product.entity.Product;
+import com.example.customerproductsystem.order.error.OrderException;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -33,9 +35,9 @@ public class Order extends BaseEntity {
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    // 관리자
+    // 관리자 (CS 대리 주문일 때만 저장->null 허용)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id")
+    @JoinColumn(name = "admin_id", nullable = true)
     private Admin admin;
 
     // 주문 수량
@@ -47,7 +49,6 @@ public class Order extends BaseEntity {
     private Long totalPrice;
 
     // 주문 상태
-    // Enum 코드는 entity/OrderStatus에 있음
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private OrderStatus status;
@@ -56,11 +57,12 @@ public class Order extends BaseEntity {
     @Column(name = "cancel_reason", length = 255)
     private String cancelReason;
 
+    @Builder
     public Order(
             String orderNumber,
             Customer customer,
             Product product,
-            Admin admin,
+            Admin admin, // 일반 주문 시 null 가능
             Integer quantity,
             Long totalPrice,
             OrderStatus status
@@ -71,14 +73,36 @@ public class Order extends BaseEntity {
         this.admin = admin;
         this.quantity = quantity;
         this.totalPrice = totalPrice;
-        this.status = status;
+        this.status = status != null ? status : OrderStatus.PENDING;
     }
 
-    public void cancelOrder(String cancelReason){
+    public void cancelOrder(String cancelReason) {
+        if (this.status != OrderStatus.PENDING) {
+            throw new OrderException.CannotCancelOrder(this.status.name());
+        }
+
+        this.product.restoreStockForCancel(this.quantity);
         this.cancelReason = cancelReason;
         this.status = OrderStatus.CANCELED;
     }
-    public void updateStatus(OrderStatus status) {
-        this.status = status;
+
+    public void changeStatus(OrderStatus newStatus) {
+        if (this.status == OrderStatus.CANCELED) {
+            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
+        }
+
+        if (this.status == OrderStatus.COMPLETED) {
+            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
+        }
+
+        if (this.status == OrderStatus.PENDING && newStatus != OrderStatus.SHIPPING) {
+            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
+        }
+
+        if (this.status == OrderStatus.SHIPPING && newStatus != OrderStatus.COMPLETED) {
+            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
+        }
+
+        this.status = newStatus;
     }
 }

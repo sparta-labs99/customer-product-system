@@ -2,24 +2,33 @@ package com.example.customerproductsystem.order.service;
 
 import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.admin.repository.AdminRepository;
+import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.common.error.ErrorCode;
 import com.example.customerproductsystem.customer.entity.Customer;
+import com.example.customerproductsystem.customer.error.CustomerException;
 import com.example.customerproductsystem.customer.repository.CustomerRepository;
 import com.example.customerproductsystem.order.dto.CreateOrderRequest;
 import com.example.customerproductsystem.order.dto.CreateOrderResponse;
+import com.example.customerproductsystem.order.dto.OrderDetailResponse;
+import com.example.customerproductsystem.order.dto.OrderSearchResponse;
 import com.example.customerproductsystem.order.entity.Order;
-import com.example.customerproductsystem.order.entity.OrderStatus;
+import com.example.customerproductsystem.order.error.OrderException;
 import com.example.customerproductsystem.order.repository.OrderRepository;
 import com.example.customerproductsystem.product.entity.Product;
+import com.example.customerproductsystem.order.dto.UpdateOrderResponse;
+import com.example.customerproductsystem.order.dto.UpdateOrderStatusRequest;
 import com.example.customerproductsystem.product.repository.ProductRepository;
-import jakarta.servlet.http.HttpSession;
+import com.example.customerproductsystem.order.dto.CancelOrderResponse;
+import com.example.customerproductsystem.order.dto.CancelOrderRequest;
+import com.example.customerproductsystem.order.dto.OrderSearchCondition;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import static com.example.customerproductsystem.order.util.GenerateOrderNum.generateOrderNumber;
-import static com.example.customerproductsystem.order.validation.OrderValidation.validate;
 
 @Service
 @RequiredArgsConstructor
@@ -31,54 +40,93 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final AdminRepository adminRepository;
 
+
     @Transactional
-    public CreateOrderResponse createOrder(CreateOrderRequest request, HttpSession session) {
+    public CreateOrderResponse createOrder(CreateOrderRequest request, LoginAdmin sessionAdmin) {
 
-        //예외처리
-        Customer customer = customerRepository.findById(request.getCustomerId()).orElseThrow(
-                () -> new CustomException(HttpStatus.NOT_FOUND, "검색한 고객 ID가 존재하지 않습니다.")
-        );
-        Product product = productRepository.findById(request.getProductId()).orElseThrow(
-                () -> new CustomException(HttpStatus.NOT_FOUND, "입력하신 상품이 존재하지 않습니다.")
-        );
+        if (sessionAdmin == null || sessionAdmin.id() == null) {
+            throw new CustomException(HttpStatus.UNAUTHORIZED, "로그인한 관리자만 주문을 생성할 수 있습니다.");
+        }
 
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new CustomerException.NotFound(request.getCustomerId()));
 
-        //관리자 권한 있다고 가정하고 임시 코드 생성 수정필수!!!!!!!!!
-        //나중에 세션처리해야됨(getAttribute 사용하기)
-        Admin admin = adminRepository.findById(1L)
-                .orElse(null);
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
+        Admin admin = adminRepository.getReferenceById(sessionAdmin.id());
 
-        //요청이 유효한지 검증 (남은 상품 수량이 없거나, 품절이거나, 단종됐거나, 현재 수량보다 많이 주문할경우에 대한 예외처리)
-        validate(product, request.getQuantity());
-        //상품 수량 업데이트 (주문한 수량만큼 상품수량에서 차감)
-        product.updateStock(product.getStock() - request.getQuantity());
+        // 주문한 수량만큼 상품수량에서 차감
+        product.decreaseStockForOrder(request.getQuantity());
 
         // 주문번호 생성
         String orderNumber = generateOrderNumber();
-        // 총 금액 계산
-        Long totalPrice = (long)product.getPrice() * request.getQuantity();
+
         // 주문 생성
-        Order order = new Order(
-                orderNumber,
-                customer,
-                product,
-                admin,
-                request.getQuantity(),
-                totalPrice,
-                OrderStatus.PENDING
+        /* order, product 도메인 검증
+         * 주문 수량이 1 이상인가?
+         * 해당 상품이 단종(DISCONTINUED) 상태인가?
+         * 해당 상품이 품절(OUT_OF_STOCK) 상태이거나 재고가 0인가?
+         * 주문하려는 수량이 현재 남은 재고(stock)보다 큰가?
+         * */
+        Order order = request.toEntity(orderNumber, customer, product, admin);
+
+        Order savedOrder = orderRepository.save(order);
+
+        return CreateOrderResponse.from(savedOrder);
+    }
+
+    /**
+     * CS 주문 리스트 조회 (페이징 및 검색)
+     */
+    @Transactional(readOnly = true)
+    public Page<OrderSearchResponse> getAllOrders(
+            OrderSearchCondition condition,
+            Pageable pageable) {
+
+        Page<Order> orders = orderRepository.findAllByCondition(
+                condition.getStatus(),
+                condition.getKeyword(),
+                pageable
         );
 
-        orderRepository.save(order);
+        return orders.map(OrderSearchResponse::from);
+    }
 
-        return new CreateOrderResponse(
-                order.getId(),
-                order.getOrderNumber(),
-                customer.getName(),
-                product.getName(),
-                order.getQuantity(),
-                order.getTotalPrice(),
-                order.getStatus()
-        );
+    /**
+     * 주문 상세 조회
+     */
+    @Transactional(readOnly = true)
+    public OrderDetailResponse getOrderDetail(Long id) {
+        Order order = orderRepository.findByIdWithDetails(id)
+                .orElseThrow(() -> new OrderException.NotFound(id));
+
+        return OrderDetailResponse.from(order);
+    }
+
+    /**
+     * 주문 상태 수정
+     */
+    @Transactional
+    public UpdateOrderResponse updateOrderStatus(Long id, UpdateOrderStatusRequest request) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderException.NotFound(id));
+
+        order.changeStatus(request.getStatus());
+
+        return UpdateOrderResponse.from(order);
+    }
+
+    /**
+     * 주문 취소
+     */
+    @Transactional
+    public CancelOrderResponse cancelOrder(Long id, CancelOrderRequest request) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderException.NotFound(id));
+
+        order.cancelOrder(request.getCancelReason());
+
+        return CancelOrderResponse.from(order);
     }
 }

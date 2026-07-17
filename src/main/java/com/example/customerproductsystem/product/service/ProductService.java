@@ -11,7 +11,7 @@ import com.example.customerproductsystem.product.entity.Product;
 import com.example.customerproductsystem.product.entity.ProductStatus;
 import com.example.customerproductsystem.product.repository.ProductRepository;
 import com.example.customerproductsystem.review.dto.GetReviewResponse;
-import com.example.customerproductsystem.review.dto.RatingCountDto;
+import com.example.customerproductsystem.review.dto.ReviewRatingCount;
 import com.example.customerproductsystem.review.entity.Review;
 import com.example.customerproductsystem.review.entity.ReviewStatus;
 import com.example.customerproductsystem.review.repository.ReviewRepository;
@@ -77,11 +77,11 @@ public class ProductService {
         }
 
         // 평점 별 리뷰 갯수 찾기
-        List<RatingCountDto> counts = reviewRepository.countByRating(id);
+        List<ReviewRatingCount> counts = reviewRepository.getRatingDistributionByProductId(id);
 
         // 모든 리뷰 갯수
         long totalReviewCount = counts.stream()
-                .mapToLong(RatingCountDto::count)
+                .mapToLong(ReviewRatingCount::count)
                 .sum();
 
         // 모든 평점의 합

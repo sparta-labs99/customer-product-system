@@ -2,11 +2,14 @@ package com.example.customerproductsystem.customer.dto;
 
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.entity.CustomerStatus;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class CustomerDetailResponse {
 
     private final Long id;
@@ -19,16 +22,17 @@ public class CustomerDetailResponse {
     private final long totalOrderCount;
     private final long totalPurchaseAmount;
 
-    // 엔티티와 주문 통계 데이터를 함께 받는 생성자
-    public CustomerDetailResponse(Customer customer, long totalOrderCount, long totalPurchaseAmount) {
-        this.id = customer.getId();
-        this.name = customer.getName();
-        this.email = customer.getEmail();
-        this.phoneNumber = customer.getPhoneNumber();
-        this.status = customer.getStatus();
-        this.createdAt = customer.getCreatedAt();
-        this.updatedAt = customer.getUpdatedAt();
-        this.totalOrderCount = totalOrderCount;
-        this.totalPurchaseAmount = totalPurchaseAmount;
+    public static CustomerDetailResponse from(Customer customer, long totalOrderCount, long totalPurchaseAmount) {
+        return new CustomerDetailResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getPhoneNumber(),
+                customer.getStatus(),
+                customer.getCreatedAt(),
+                customer.getUpdatedAt(),
+                totalOrderCount,
+                totalPurchaseAmount
+        );
     }
 }

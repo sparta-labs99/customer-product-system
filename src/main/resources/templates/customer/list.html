@@ -34,7 +34,7 @@
                                 <select id="statusSelect" class="form-select form-select-sm shadow-sm" style="width: 110px; cursor: pointer; height: 31px;">
                                     <option value="">전체 상태</option>
                                     <option value="ACTIVE">활성</option>
-                                    <option value="INACTIVE">비활성</option>
+                                    <option value="INACTIVE">탈퇴</option>
                                     <option value="SUSPENDED">정지</option>
                                 </select>
 
@@ -189,6 +189,10 @@
                 const badgeClass = customer.status === 'ACTIVE' ? 'bg-success' :
                     customer.status === 'INACTIVE' ? 'bg-danger' : 'bg-secondary';
 
+                const statusName = customer.status === 'ACTIVE' ? '활성' :
+                                   customer.status === 'INACTIVE' ? '탈퇴' :
+                                   customer.status === 'SUSPENDED' ? '정지' : customer.status;
+
                 return `
                 <tr>
                     <td class="text-center">
@@ -197,7 +201,7 @@
                     <td>${escapeHtml(customer.name)}</td>
                     <td>${escapeHtml(customer.email)}</td>
                     <td>${formatDate(customer.createdAt)}</td>
-                    <td><span class="badge ${badgeClass}">${escapeHtml(customer.status)}</span></td>
+                    <td><span class="badge ${badgeClass}">${statusName}</span></td>
                     <td class="text-center">
                         <button type="button" class="btn btn-sm btn-outline-primary btn-detail" data-id="${customer.id}">
                             상세
@@ -227,19 +231,19 @@
 
             html += `
             <li class="page-item ${startPage === 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${startPage - 1}">이전</a>
+                <a class="page-link" href="javascript:void(0);" data-page="${startPage - 1}">이전</a>
             </li>`;
 
             for (let i = startPage; i <= endPage; i++) {
                 html += `
                 <li class="page-item ${i === currentPage ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                    <a class="page-link" href="javascript:void(0);" data-page="${i}">${i}</a>
                 </li>`;
             }
 
             html += `
             <li class="page-item ${endPage >= totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${endPage + 1}">다음</a>
+                <a class="page-link" href="javascript:void(0);" data-page="${endPage + 1}">다음</a>
             </li>`;
 
             elements.paginationArea.innerHTML = html;
@@ -293,7 +297,6 @@
         });
 
         elements.paginationArea.addEventListener('click', function(e) {
-            e.preventDefault();
             const target = e.target;
             if (target.classList.contains('page-link')) {
                 const parentLi = target.closest('.page-item');
@@ -360,10 +363,12 @@
 
                             if (data.status === 'ACTIVE') {
                                 dropdownBtn.className = 'btn btn-sm btn-success dropdown-toggle fw-bold';
-                                dropdownBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ACTIVE';
+                                dropdownBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> 활성';
+                                dropdownBtn.setAttribute('data-status', 'ACTIVE');
                             } else if (data.status === 'SUSPENDED') {
                                 dropdownBtn.className = 'btn btn-sm btn-secondary dropdown-toggle fw-bold';
-                                dropdownBtn.innerHTML = '<i class="fas fa-ban me-1"></i> SUSPENDED';
+                                dropdownBtn.innerHTML = '<i class="fas fa-ban me-1"></i> 정지';
+                                dropdownBtn.setAttribute('data-status', 'SUSPENDED');
                             }
                         } else {
                             // [일반 관리자] 수정 불가능한 고정 뱃지 표시
@@ -371,10 +376,10 @@
                                 fixedBadge.classList.remove('d-none');
                                 if (data.status === 'ACTIVE') {
                                     fixedBadge.className = 'badge bg-success px-3 py-2';
-                                    fixedBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i> ACTIVE';
+                                    fixedBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i> 활성';
                                 } else if (data.status === 'SUSPENDED') {
                                     fixedBadge.className = 'badge bg-secondary px-3 py-2';
-                                    fixedBadge.innerHTML = '<i class="fas fa-ban me-1"></i> SUSPENDED';
+                                    fixedBadge.innerHTML = '<i class="fas fa-ban me-1"></i> 정지';
                                 }
                             }
                         }
@@ -449,7 +454,7 @@
 
                 const newStatus = this.getAttribute('data-value');
                 const dropdownBtn = document.getElementById('statusDropdownBtn');
-                const currentStatus = dropdownBtn.textContent.includes('ACTIVE') ? 'ACTIVE' : 'SUSPENDED';
+                const currentStatus = dropdownBtn.getAttribute('data-status');
 
                 if (newStatus === currentStatus) return;
 
@@ -470,10 +475,12 @@
 
                     if (newStatus === 'ACTIVE') {
                         dropdownBtn.className = 'btn btn-sm btn-success dropdown-toggle fw-bold';
-                        dropdownBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> ACTIVE';
+                        dropdownBtn.innerHTML = '<i class="fas fa-check-circle me-1"></i> 활성';
+                        dropdownBtn.setAttribute('data-status', 'ACTIVE');
                     } else {
                         dropdownBtn.className = 'btn btn-sm btn-secondary dropdown-toggle fw-bold';
-                        dropdownBtn.innerHTML = '<i class="fas fa-ban me-1"></i> SUSPENDED';
+                        dropdownBtn.innerHTML = '<i class="fas fa-ban me-1"></i> 정지';
+                        dropdownBtn.setAttribute('data-status', 'SUSPENDED');
                     }
                     loadCustomers(state.currentPage);
                 }).catch(error => {
