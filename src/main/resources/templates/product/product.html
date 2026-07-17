@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="~{common/fragments :: common-head}"></head>
+<body class="sb-nav-fixed bg-light">
+<style>
+    .selected-box {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        padding: 15px;
+        background-color: #f8f9fa;
+    }
+</style>
+<!-- 공통 상단 네비게이션 -->
+<div th:replace="~{common/fragments :: top-nav}"></div>
+
+<div id="layoutSidenav">
+    <!-- 공통 사이드 네비게이션 -->
+    <div th:replace="~{common/fragments :: side-nav}"></div>
+
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fw-bold mb-0"><i class="fas fa-box-open text-primary me-2"></i>상품 등록</h2>
+                </div>
+
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body p-4">
+                        <form id="productForm">
+                            <!-- 1. 담당자 정보 -->
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">1. 담당자 정보</h6>
+                                <div class="row align-items-center">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small">이름</label>
+                                        <input type="text" id="adminName" class="form-control bg-light" readonly placeholder="로딩중...">
+                                    </div>
+                                    <div class="col-md-6 mt-3 mt-md-0">
+                                        <label class="form-label text-muted small">이메일</label>
+                                        <input type="email" id="adminEmail" class="form-control bg-light" readonly placeholder="로딩중...">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2. 상품 기본 정보 -->
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">2. 상품 기본 정보</h6>
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <label class="form-label text-muted small">상품명 <span class="text-danger">*</span></label>
+                                        <input type="text" id="productName" class="form-control" maxlength="100" placeholder="상품명을 입력해주세요" required>
+                                    </div>
+                                    <div class="col-md-4 mt-3 mt-md-0">
+                                        <label class="form-label text-muted small">카테고리 <span class="text-danger">*</span></label>
+                                        <select id="productCategory" class="form-select" required>
+                                            <option value="" selected disabled>선택해주세요</option>
+                                            <option value="ELECTRONICS">전자기기</option>
+                                            <option value="FASHION">패션</option>
+                                            <option value="FOOD">식품</option>
+                                            <option value="ELSE">기타</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 3. 가격 및 재고 -->
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">3. 가격 및 재고 <span class="text-danger">*</span></h6>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <label class="form-label text-muted small">가격 (원)</label>
+                                        <input type="number" id="productPrice" class="form-control" min="0" value="0" required>
+                                    </div>
+                                    <div class="col-md-4 mt-3 mt-md-0">
+                                        <label class="form-label text-muted small">재고 수량</label>
+                                        <input type="number" id="productStock" class="form-control" min="0" value="0" required>
+                                    </div>
+                                    <div class="col-md-4 mt-3 mt-md-0">
+                                        <label class="form-label text-muted small">판매 상태</label>
+                                        <select id="productStatus" class="form-select" required>
+                                            <option value="FOR_SALE" selected>판매중</option>
+                                            <option value="DISCONTINUED">단종</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. 미리보기 -->
+                            <div class="mb-4">
+                                <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">4. 등록 정보 확인</h6>
+                                <div class="selected-box">
+                                    <h5 class="fw-bold mb-1" id="previewName">상품명을 입력해주세요</h5>
+                                    <p class="text-muted mb-0">
+                                        카테고리: <span id="previewCategory" class="fw-bold text-dark">-</span> |
+                                        가격: <span id="previewPrice" class="fw-bold text-dark">0</span>원 |
+                                        재고: <span id="previewStock" class="fw-bold text-dark">0</span>개 |
+                                        상태: <span id="previewStatus" class="fw-bold text-dark">판매중</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 5. 등록 버튼 -->
+                            <div class="text-end border-top pt-4 mt-4">
+                                <button type="button" class="btn btn-secondary me-2" onclick="history.back()">취소</button>
+                                <button type="submit" class="btn btn-primary px-4 fw-bold"><i class="fas fa-check me-1"></i> 상품 등록</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- 공통 하단 푸터 -->
+        <footer th:replace="~{common/fragments :: footer}"></footer>
+    </div>
+</div>
+
+<div th:replace="~{common/fragments :: common-scripts}"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 유틸 함수 ---
+        const formatNumber = (num) => {
+            return new Intl.NumberFormat('ko-KR').format(num || 0);
+        };
+
+        const categoryLabels = {
+            ELECTRONICS: '전자기기',
+            FASHION: '패션',
+            FOOD: '식품',
+            ELSE: '기타'
+        };
+
+        const statusLabels = {
+            FOR_SALE: '판매중',
+            DISCONTINUED: '단종'
+        };
+
+        // --- DOM 요소 ---
+        const productForm = document.getElementById('productForm');
+        const productName = document.getElementById('productName');
+        const productCategory = document.getElementById('productCategory');
+        const productPrice = document.getElementById('productPrice');
+        const productStock = document.getElementById('productStock');
+        const productStatus = document.getElementById('productStatus');
+
+        const previewName = document.getElementById('previewName');
+        const previewCategory = document.getElementById('previewCategory');
+        const previewPrice = document.getElementById('previewPrice');
+        const previewStock = document.getElementById('previewStock');
+        const previewStatus = document.getElementById('previewStatus');
+
+        // 1. 관리자 정보 로드
+        fetch('/admins/me')
+            .then(res => {
+                if (!res.ok) throw new Error("관리자 정보를 불러올 수 없습니다.");
+                return res.json();
+            })
+            .then(json => {
+                const admin = json.data || json;
+                document.getElementById('adminName').value = admin.name || '';
+                document.getElementById('adminEmail').value = admin.email || '';
+            })
+            .catch(error => console.error(error));
+
+        // 2. 실시간 미리보기 업데이트
+        const updatePreview = () => {
+            previewName.textContent = productName.value.trim() || '상품명을 입력해주세요';
+            previewCategory.textContent = categoryLabels[productCategory.value] || '-';
+            previewPrice.textContent = formatNumber(parseInt(productPrice.value) || 0);
+            previewStock.textContent = formatNumber(parseInt(productStock.value) || 0);
+            previewStatus.textContent = statusLabels[productStatus.value] || '-';
+        };
+
+        productName.addEventListener('input', updatePreview);
+        productCategory.addEventListener('change', updatePreview);
+        productPrice.addEventListener('input', updatePreview);
+        productStock.addEventListener('input', updatePreview);
+        productStatus.addEventListener('change', updatePreview);
+        updatePreview();
+
+        // 3. 폼 제출 (상품 등록)
+        productForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = productName.value.trim();
+            const category = productCategory.value;
+            const price = parseInt(productPrice.value);
+            const stock = parseInt(productStock.value);
+            const status = productStatus.value;
+
+            if (!name) {
+                alert('상품명을 입력해주세요.');
+                return;
+            }
+            if (!category) {
+                alert('카테고리를 선택해주세요.');
+                return;
+            }
+            if (isNaN(price) || price < 0) {
+                alert('가격은 0 이상이어야 합니다.');
+                return;
+            }
+            if (isNaN(stock) || stock < 0) {
+                alert('재고 수량은 0 이상이어야 합니다.');
+                return;
+            }
+            if (!status) {
+                alert('판매 상태를 선택해주세요.');
+                return;
+            }
+
+            if (stock === 0 && status === 'FOR_SALE') {
+                alert('재고가 0인 상품은 판매중으로 등록할 수 없습니다.');
+                return;
+            }
+
+            if (!confirm('위의 내용으로 상품을 등록하시겠습니까?')) return;
+
+            try {
+                const res = await fetch('/products', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        category: category,
+                        price: price,
+                        stock: stock,
+                        status: status
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.message || '상품 등록에 실패했습니다.');
+                }
+
+                alert('상품이 성공적으로 등록되었습니다.');
+                window.location.href = '/view/products/list'; // 상품 목록 페이지로 이동
+            } catch (error) {
+                alert(error.message);
+            }
+        });
+    });
+</script>
+</body>
+</html>

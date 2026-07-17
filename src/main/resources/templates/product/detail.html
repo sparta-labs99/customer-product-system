@@ -183,7 +183,6 @@
                                     <label class="form-label" for="statusInputSelect">상태</label>
                                     <select class="form-select" id="statusInputSelect" required>
                                         <option value="FOR_SALE">판매중</option>
-                                        <option value="OUT_OF_STOCK">품절</option>
                                         <option value="DISCONTINUED">단종</option>
                                     </select>
                                 </div>
@@ -267,14 +266,12 @@
 
         const statusLabels = {
             FOR_SALE: '판매중',
-            OUT_OF_STOCK: '품절',
             DISCONTINUED: '단종',
             DELETED: '삭제됨'
         };
 
         const statusBadgeClasses = {
             FOR_SALE: 'bg-success',
-            OUT_OF_STOCK: 'bg-warning',
             DISCONTINUED: 'bg-secondary',
             DELETED: 'bg-dark'
         };
@@ -522,6 +519,11 @@
             e.preventDefault();
 
             const status = document.getElementById('statusInputSelect').value;
+
+            if (currentProduct.stock === 0 && status === 'FOR_SALE') {
+                alert('재고가 0인 상품은 판매중으로 변경할 수 없습니다.');
+                return;
+            }
 
             fetch(`/products/${productId}/status?status=${status}`, {
                 method: 'PATCH'
