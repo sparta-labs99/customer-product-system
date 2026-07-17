@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+
+<head th:replace="~{common/fragments :: common-head}">
+</head>
+
+<body class="sb-nav-fixed">
+
+<nav th:replace="~{common/fragments :: top-nav}"></nav>
+
+<div id="layoutSidenav">
+
+    <div th:replace="~{common/fragments :: side-nav}"></div>
+
+    <div id="layoutSidenav_content">
+
+        <main>
+            <div class="container-fluid px-4">
+
+                <div class="d-flex justify-content-between align-items-center mt-4 mb-4">
+
+                    <h1 class="mb-0">
+                        내 프로필
+                    </h1>
+
+                    <a
+                            th:href="@{/}"
+                            class="btn btn-outline-secondary"
+                    >
+                        <i class="fas fa-arrow-left me-1"></i>
+                        메인으로
+                    </a>
+
+                </div>
+
+                <div
+                        id="loadingMessage"
+                        class="alert alert-info"
+                        role="alert"
+                >
+                    프로필 정보를 불러오는 중입니다.
+                </div>
+
+                <div
+                        id="errorMessage"
+                        class="alert alert-danger d-none"
+                        role="alert"
+                >
+                </div>
+
+                <div
+                        id="successMessage"
+                        class="alert alert-success d-none"
+                        role="alert"
+                >
+                </div>
+
+                <div
+                        id="profileArea"
+                        class="row d-none"
+                >
+
+                    <div class="col-xl-4">
+
+                        <div class="card mb-4 shadow-sm">
+
+                            <div class="card-body text-center py-5">
+
+                                <div class="mb-4">
+
+                                    <i
+                                            class="fas fa-user-circle text-secondary"
+                                            style="font-size: 7rem;"
+                                    ></i>
+
+                                </div>
+
+                                <h4
+                                        id="profileName"
+                                        class="fw-bold mb-2"
+                                >
+                                    -
+                                </h4>
+
+                                <p
+                                        id="profileEmail"
+                                        class="text-muted mb-3"
+                                >
+                                    -
+                                </p>
+
+                                <span
+                                        id="profileRoleBadge"
+                                        class="badge bg-secondary"
+                                >
+                                    -
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div class="col-xl-8">
+
+                        <div class="card mb-4 shadow-sm">
+
+                            <div class="card-header">
+
+                                <i class="fas fa-id-card me-1"></i>
+                                관리자 정보
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <div class="row border-bottom py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        관리자 ID
+                                    </div>
+
+                                    <div
+                                            id="adminId"
+                                            class="col-sm-9"
+                                    >
+                                        -
+                                    </div>
+
+                                </div>
+
+                                <div class="row border-bottom py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        이름
+                                    </div>
+
+                                    <div
+                                            id="name"
+                                            class="col-sm-9"
+                                    >
+                                        -
+                                    </div>
+
+                                </div>
+
+                                <div class="row border-bottom py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        이메일
+                                    </div>
+
+                                    <div class="col-sm-9">
+
+                                        <div
+                                                id="emailViewArea"
+                                                class="d-flex justify-content-between align-items-center gap-2"
+                                        >
+
+                                            <span id="email">
+                                                -
+                                            </span>
+
+                                            <button
+                                                    id="emailEditBtn"
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-primary"
+                                            >
+                                                <i class="fas fa-pen me-1"></i>
+                                                수정
+                                            </button>
+
+                                        </div>
+
+                                        <div
+                                                id="emailEditArea"
+                                                class="d-none"
+                                        >
+
+                                            <div class="input-group">
+
+                                                <input
+                                                        id="emailInput"
+                                                        type="email"
+                                                        class="form-control"
+                                                        placeholder="변경할 이메일"
+                                                >
+
+                                                <button
+                                                        id="emailSaveBtn"
+                                                        type="button"
+                                                        class="btn btn-primary"
+                                                >
+                                                    저장
+                                                </button>
+
+                                                <button
+                                                        id="emailCancelBtn"
+                                                        type="button"
+                                                        class="btn btn-outline-secondary"
+                                                >
+                                                    취소
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="row border-bottom py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        전화번호
+                                    </div>
+
+                                    <div class="col-sm-9">
+
+                                        <div
+                                                id="phoneViewArea"
+                                                class="d-flex justify-content-between align-items-center gap-2"
+                                        >
+
+                                            <span id="phoneNumber">
+                                                -
+                                            </span>
+
+                                            <button
+                                                    id="phoneEditBtn"
+                                                    type="button"
+                                                    class="btn btn-sm btn-outline-primary"
+                                            >
+                                                <i class="fas fa-pen me-1"></i>
+                                                수정
+                                            </button>
+
+                                        </div>
+
+                                        <div
+                                                id="phoneEditArea"
+                                                class="d-none"
+                                        >
+
+                                            <div class="input-group">
+
+                                                <input
+                                                        id="phoneNumberInput"
+                                                        type="tel"
+                                                        class="form-control"
+                                                        placeholder="010-1234-5678"
+                                                        maxlength="13"
+                                                >
+
+                                                <button
+                                                        id="phoneSaveBtn"
+                                                        type="button"
+                                                        class="btn btn-primary"
+                                                >
+                                                    저장
+                                                </button>
+
+                                                <button
+                                                        id="phoneCancelBtn"
+                                                        type="button"
+                                                        class="btn btn-outline-secondary"
+                                                >
+                                                    취소
+                                                </button>
+
+                                            </div>
+
+                                            <div class="form-text">
+                                                010-XXXX-XXXX 형식으로 입력해 주세요.
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="row border-bottom py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        역할
+                                    </div>
+
+                                    <div
+                                            id="role"
+                                            class="col-sm-9"
+                                    >
+                                        -
+                                    </div>
+
+                                </div>
+
+                                <div class="row py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        승인일
+                                    </div>
+
+                                    <div
+                                            id="approvedAt"
+                                            class="col-sm-9"
+                                    >
+                                        -
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+        <footer th:replace="~{common/fragments :: footer}"></footer>
+
+    </div>
+
+</div>
+
+<div th:replace="~{common/fragments :: common-scripts}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        let currentProfile = null;
+
+        const loadingMessage =
+            document.getElementById("loadingMessage");
+
+        const errorMessage =
+            document.getElementById("errorMessage");
+
+        const successMessage =
+            document.getElementById("successMessage");
+
+        const profileArea =
+            document.getElementById("profileArea");
+
+        const emailViewArea =
+            document.getElementById("emailViewArea");
+
+        const emailEditArea =
+            document.getElementById("emailEditArea");
+
+        const emailInput =
+            document.getElementById("emailInput");
+
+        const emailEditButton =
+            document.getElementById("emailEditBtn");
+
+        const emailSaveButton =
+            document.getElementById("emailSaveBtn");
+
+        const emailCancelButton =
+            document.getElementById("emailCancelBtn");
+
+        const phoneViewArea =
+            document.getElementById("phoneViewArea");
+
+        const phoneEditArea =
+            document.getElementById("phoneEditArea");
+
+        const phoneNumberInput =
+            document.getElementById("phoneNumberInput");
+
+        const phoneEditButton =
+            document.getElementById("phoneEditBtn");
+
+        const phoneSaveButton =
+            document.getElementById("phoneSaveBtn");
+
+        const phoneCancelButton =
+            document.getElementById("phoneCancelBtn");
+
+
+        async function loadMyProfile() {
+
+            hideError();
+            hideSuccess();
+
+            loadingMessage.classList.remove("d-none");
+            profileArea.classList.add("d-none");
+
+            try {
+
+                const response = await fetch(
+                    "/admins/me",
+                    {
+                        method: "GET",
+                        credentials: "same-origin",
+                        headers: {
+                            "Accept": "application/json"
+                        }
+                    }
+                );
+
+                const responseBody =
+                    await readApiResponse(response);
+
+                if (!response.ok || !responseBody.success) {
+
+                    throw createApiError(
+                        responseBody,
+                        response.status
+                    );
+                }
+
+                if (!responseBody.data) {
+
+                    throw new Error(
+                        "프로필 응답에 데이터가 없습니다."
+                    );
+                }
+
+                currentProfile =
+                    responseBody.data;
+
+                renderProfile(currentProfile);
+
+                loadingMessage.classList.add("d-none");
+                profileArea.classList.remove("d-none");
+
+            } catch (error) {
+
+                console.error(
+                    "내 프로필 조회 오류:",
+                    error
+                );
+
+                loadingMessage.classList.add("d-none");
+                profileArea.classList.add("d-none");
+
+                if (error.status === 401) {
+
+                    alert(
+                        error.message
+                        || "로그인이 필요합니다."
+                    );
+
+                    window.location.href =
+                        "/login";
+
+                    return;
+                }
+
+                showError(
+                    getDisplayErrorMessage(error)
+                );
+            }
+        }
+
+
+        function renderProfile(profile) {
+
+            document
+                .getElementById("adminId")
+                .textContent =
+                profile.id ?? "-";
+
+            document
+                .getElementById("name")
+                .textContent =
+                profile.name || "-";
+
+            document
+                .getElementById("email")
+                .textContent =
+                profile.email || "-";
+
+            document
+                .getElementById("phoneNumber")
+                .textContent =
+                profile.phoneNumber || "-";
+
+            document
+                .getElementById("role")
+                .textContent =
+                getRoleText(profile.role);
+
+            document
+                .getElementById("approvedAt")
+                .textContent =
+                formatDateTime(profile.approvedAt);
+
+            document
+                .getElementById("profileName")
+                .textContent =
+                profile.name || "-";
+
+            document
+                .getElementById("profileEmail")
+                .textContent =
+                profile.email || "-";
+
+            const roleBadge =
+                document.getElementById(
+                    "profileRoleBadge"
+                );
+
+            roleBadge.textContent =
+                getRoleText(profile.role);
+
+            roleBadge.className =
+                `badge ${getRoleBadgeClass(profile.role)}`;
+
+            emailInput.value =
+                profile.email || "";
+
+            phoneNumberInput.value =
+                profile.phoneNumber || "";
+        }
+
+
+        emailEditButton.addEventListener(
+            "click",
+            function () {
+
+                hideError();
+                hideSuccess();
+
+                emailInput.value =
+                    currentProfile?.email || "";
+
+                emailViewArea.classList.add("d-none");
+                emailEditArea.classList.remove("d-none");
+
+                emailInput.focus();
+            }
+        );
+
+
+        emailCancelButton.addEventListener(
+            "click",
+            function () {
+
+                emailInput.value =
+                    currentProfile?.email || "";
+
+                emailEditArea.classList.add("d-none");
+                emailViewArea.classList.remove("d-none");
+            }
+        );
+
+
+        emailSaveButton.addEventListener(
+            "click",
+            async function () {
+
+                const newEmail =
+                    emailInput.value.trim();
+
+                hideError();
+                hideSuccess();
+
+                if (!newEmail) {
+
+                    showError(
+                        "이메일은 필수입니다."
+                    );
+
+                    return;
+                }
+
+                if (!isValidEmail(newEmail)) {
+
+                    showError(
+                        "올바른 이메일 형식이 아닙니다."
+                    );
+
+                    return;
+                }
+
+                if (newEmail === currentProfile.email) {
+
+                    showError(
+                        "현재 이메일과 동일합니다."
+                    );
+
+                    return;
+                }
+
+                await updateProfile({
+                    name: currentProfile.name,
+                    email: newEmail,
+                    phoneNumber: currentProfile.phoneNumber
+                });
+            }
+        );
+
+
+        phoneEditButton.addEventListener(
+            "click",
+            function () {
+
+                hideError();
+                hideSuccess();
+
+                phoneNumberInput.value =
+                    currentProfile?.phoneNumber || "";
+
+                phoneViewArea.classList.add("d-none");
+                phoneEditArea.classList.remove("d-none");
+
+                phoneNumberInput.focus();
+            }
+        );
+
+
+        phoneCancelButton.addEventListener(
+            "click",
+            function () {
+
+                phoneNumberInput.value =
+                    currentProfile?.phoneNumber || "";
+
+                phoneEditArea.classList.add("d-none");
+                phoneViewArea.classList.remove("d-none");
+            }
+        );
+
+
+        phoneSaveButton.addEventListener(
+            "click",
+            async function () {
+
+                const newPhoneNumber =
+                    phoneNumberInput.value.trim();
+
+                hideError();
+                hideSuccess();
+
+                if (!newPhoneNumber) {
+
+                    showError(
+                        "전화번호는 필수입니다."
+                    );
+
+                    return;
+                }
+
+                if (!isValidPhoneNumber(newPhoneNumber)) {
+
+                    showError(
+                        "전화번호는 010-XXXX-XXXX 형식이어야 합니다."
+                    );
+
+                    return;
+                }
+
+                if (
+                    newPhoneNumber
+                    === currentProfile.phoneNumber
+                ) {
+
+                    showError(
+                        "현재 전화번호와 동일합니다."
+                    );
+
+                    return;
+                }
+
+                await updateProfile({
+                    name: currentProfile.name,
+                    email: currentProfile.email,
+                    phoneNumber: newPhoneNumber
+                });
+            }
+        );
+
+
+        async function updateProfile(requestBody) {
+
+            hideError();
+            hideSuccess();
+
+            setUpdateButtonsDisabled(true);
+
+            try {
+
+                const response = await fetch(
+                    "/admins/me",
+                    {
+                        method: "PATCH",
+                        credentials: "same-origin",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Accept": "application/json"
+                        },
+                        body: JSON.stringify(requestBody)
+                    }
+                );
+
+                const responseBody =
+                    await readApiResponse(response);
+
+                if (!response.ok || !responseBody.success) {
+
+                    throw createApiError(
+                        responseBody,
+                        response.status
+                    );
+                }
+
+                if (!responseBody.data) {
+
+                    throw new Error(
+                        "수정된 프로필 응답에 데이터가 없습니다."
+                    );
+                }
+
+                currentProfile =
+                    responseBody.data;
+
+                renderProfile(currentProfile);
+
+                closeEditAreas();
+
+                showSuccess(
+                    responseBody.message
+                    || "프로필 정보가 수정되었습니다."
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "내 프로필 수정 오류:",
+                    error
+                );
+
+                if (error.status === 401) {
+
+                    alert(
+                        error.message
+                        || "로그인이 필요합니다."
+                    );
+
+                    window.location.href =
+                        "/login";
+
+                    return;
+                }
+
+                showError(
+                    getDisplayErrorMessage(error)
+                );
+
+            } finally {
+
+                setUpdateButtonsDisabled(false);
+            }
+        }
+
+
+        async function readApiResponse(response) {
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!contentType.includes("application/json")) {
+
+                const text =
+                    await response.text();
+
+                return {
+                    success: false,
+                    code: response.status,
+                    message:
+                        text
+                        || `요청 처리에 실패했습니다. (${response.status})`,
+                    errorCode: "UNKNOWN_ERROR",
+                    data: null
+                };
+            }
+
+            const text =
+                await response.text();
+
+            if (!text) {
+
+                return {
+                    success: response.ok,
+                    code: response.status,
+                    message:
+                        response.ok
+                            ? "요청에 성공하였습니다."
+                            : `요청 처리에 실패했습니다. (${response.status})`,
+                    errorCode: null,
+                    data: null
+                };
+            }
+
+            try {
+
+                const body =
+                    JSON.parse(text);
+
+                return {
+                    success:
+                        body.success === true,
+
+                    code:
+                        body.code
+                        ?? response.status,
+
+                    message:
+                        body.message
+                        ?? "",
+
+                    errorCode:
+                        body.errorCode
+                        ?? null,
+
+                    data:
+                        body.data
+                        ?? null
+                };
+
+            } catch (error) {
+
+                return {
+                    success: false,
+                    code: response.status,
+                    message:
+                        "서버 응답을 해석하지 못했습니다.",
+                    errorCode: "INVALID_RESPONSE",
+                    data: null
+                };
+            }
+        }
+
+
+        function createApiError(
+            responseBody,
+            httpStatus
+        ) {
+
+            const error =
+                new Error(
+                    responseBody.message
+                    || `요청 처리에 실패했습니다. (${httpStatus})`
+                );
+
+            error.status =
+                responseBody.code
+                || httpStatus;
+
+            error.errorCode =
+                responseBody.errorCode
+                || "UNKNOWN_ERROR";
+
+            return error;
+        }
+
+
+        function getDisplayErrorMessage(error) {
+
+            const message =
+                error?.message
+                || "요청 처리 중 오류가 발생했습니다.";
+
+            if (
+                error?.errorCode
+                && error.errorCode !== "UNKNOWN_ERROR"
+            ) {
+                return `${message} [${error.errorCode}]`;
+            }
+
+            return message;
+        }
+
+
+        function closeEditAreas() {
+
+            emailEditArea.classList.add("d-none");
+            emailViewArea.classList.remove("d-none");
+
+            phoneEditArea.classList.add("d-none");
+            phoneViewArea.classList.remove("d-none");
+        }
+
+
+        function setUpdateButtonsDisabled(disabled) {
+
+            emailEditButton.disabled =
+                disabled;
+
+            emailSaveButton.disabled =
+                disabled;
+
+            emailCancelButton.disabled =
+                disabled;
+
+            phoneEditButton.disabled =
+                disabled;
+
+            phoneSaveButton.disabled =
+                disabled;
+
+            phoneCancelButton.disabled =
+                disabled;
+        }
+
+
+        phoneNumberInput.addEventListener(
+            "input",
+            function (event) {
+
+                const numbers =
+                    event.target.value
+                        .replace(/[^0-9]/g, "")
+                        .slice(0, 11);
+
+                let formatted = numbers;
+
+                if (numbers.length > 7) {
+
+                    formatted =
+                        numbers.slice(0, 3)
+                        + "-"
+                        + numbers.slice(3, 7)
+                        + "-"
+                        + numbers.slice(7);
+
+                } else if (numbers.length > 3) {
+
+                    formatted =
+                        numbers.slice(0, 3)
+                        + "-"
+                        + numbers.slice(3);
+                }
+
+                event.target.value =
+                    formatted;
+            }
+        );
+
+
+        function isValidEmail(email) {
+
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+                .test(email);
+        }
+
+
+        function isValidPhoneNumber(phoneNumber) {
+
+            return /^010-\d{4}-\d{4}$/
+                .test(phoneNumber);
+        }
+
+
+        function getRoleText(role) {
+
+            const roleText = {
+                SUPER_ADMIN: "슈퍼 관리자",
+                OPERATION_ADMIN: "운영 관리자",
+                CS_ADMIN: "CS 관리자"
+            };
+
+            return roleText[role]
+                || role
+                || "-";
+        }
+
+
+        function getRoleBadgeClass(role) {
+
+            const roleBadgeClass = {
+                SUPER_ADMIN: "bg-danger",
+                OPERATION_ADMIN: "bg-primary",
+                CS_ADMIN: "bg-info text-dark"
+            };
+
+            return roleBadgeClass[role]
+                || "bg-secondary";
+        }
+
+
+        function formatDateTime(value) {
+
+            if (!value) {
+                return "-";
+            }
+
+            const date =
+                new Date(value);
+
+            if (Number.isNaN(date.getTime())) {
+                return value;
+            }
+
+            return date.toLocaleString(
+                "ko-KR",
+                {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                }
+            );
+        }
+
+
+        function showError(message) {
+
+            successMessage.textContent = "";
+            successMessage.classList.add("d-none");
+
+            errorMessage.textContent =
+                message || "요청 처리에 실패했습니다.";
+
+            errorMessage.classList.remove("d-none");
+        }
+
+
+        function hideError() {
+
+            errorMessage.textContent = "";
+            errorMessage.classList.add("d-none");
+        }
+
+
+        function showSuccess(message) {
+
+            errorMessage.textContent = "";
+            errorMessage.classList.add("d-none");
+
+            successMessage.textContent =
+                message || "요청에 성공했습니다.";
+
+            successMessage.classList.remove("d-none");
+        }
+
+
+        function hideSuccess() {
+
+            successMessage.textContent = "";
+            successMessage.classList.add("d-none");
+        }
+
+
+        loadMyProfile();
+    });
+</script>
+
+</body>
+</html>

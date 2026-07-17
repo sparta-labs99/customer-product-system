@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head th:replace="common/fragments :: common-head">
+</head>
+<body class="sb-nav-fixed">
+<nav th:replace="common/fragments :: top-nav"></nav>
+<div id="layoutSidenav">
+    <div th:replace="common/fragments :: side-nav"></div>
+    <div id="layoutSidenav_content">
+        <main>
+            <div class="container-fluid px-4">
+                <h1 class="mt-4 mb-4">관리자 관리</h1>
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div id="errorMessage" class="alert alert-danger d-none" role="alert"></div>
+                        <div id="successMessage" class="alert alert-success d-none" role="alert"></div>
+                        <div class="row mb-3 align-items-center">
+                            <div class="col-md-5 d-flex align-items-center gap-2">
+                                <select id="sizeSelect" class="form-select form-select-sm shadow-sm" style="width: 125px; cursor: pointer; height: 31px;">
+                                    <option value="5">5개씩 보기</option>
+                                    <option value="10" selected>10개씩 보기</option>
+                                    <option value="25">25개씩 보기</option>
+                                </select>
+                                <div class="d-flex align-items-center bg-light border rounded px-2 shadow-sm text-secondary" style="height: 31px; font-size: 0.85rem;">
+                                    <span class="fw-bold text-dark" id="totalCount">0 / 0</span>
+                                    <span class="ms-1 text-muted">명</span>
+                                </div>
+                            </div>
+                            <div class="col-md-7 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+                                <select id="roleSelect" class="form-select form-select-sm shadow-sm" style="width: 130px; cursor: pointer; height: 31px;">
+                                    <option value="">전체 역할</option>
+                                    <option value="SUPER_ADMIN">슈퍼 관리자</option>
+                                    <option value="OPERATION_ADMIN">운영 관리자</option>
+                                    <option value="CS_ADMIN">CS 관리자</option>
+                                </select>
+                                <select id="statusSelect" class="form-select form-select-sm shadow-sm" style="width: 120px; cursor: pointer; height: 31px;">
+                                    <option value="">전체 상태</option>
+                                    <option value="ACTIVE">활성</option>
+                                    <option value="INACTIVE">비활성</option>
+                                    <option value="SUSPENDED">정지</option>
+                                    <option value="PENDING">승인 대기</option>
+                                    <option value="REJECTED">거부</option>
+                                </select>
+                                <div class="input-group input-group-sm shadow-sm" style="width: 260px; height: 31px;">
+                                    <input type="text" id="keywordInput" class="form-control" placeholder="이름 또는 이메일 검색" style="height: 31px;">
+                                    <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button" style="height: 31px;">
+                                        <i class="fas fa-search me-1"></i> 검색
+                                    </button>
+                                </div>
+                                <button class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1" id="deleteCheckedBtn" type="button" style="height: 31px; font-size: 0.85rem;">
+                                    <i class="fas fa-trash-alt"></i> 선택삭제
+                                </button>
+                            </div>
+                        </div>
+                        <table class="table table-bordered table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th class="text-center" style="width: 50px;"><input class="form-check-input" type="checkbox" id="selectAll"></th>
+                                <th class="text-center sortable" data-sort="id" style="width: 70px; cursor: pointer;">ID <i class="fas fa-sort sort-icon" data-sort-icon="id"></i></th>
+                                <th>이름</th>
+                                <th style="width: 220px;">이메일</th>
+                                <th style="width: 150px;">전화번호</th>
+                                <th class="text-center sortable" data-sort="role" style="width: 170px; cursor: pointer;">역할 <i class="fas fa-sort sort-icon" data-sort-icon="role"></i></th>
+                                <th class="text-center sortable" data-sort="status" style="width: 170px; cursor: pointer;">상태 <i class="fas fa-sort sort-icon" data-sort-icon="status"></i></th>
+                                <th class="text-center" style="width: 180px;">회원가입 승인</th>
+                                <th class="text-center sortable" data-sort="createdAt" style="width: 130px; cursor: pointer;">가입일 <i class="fas fa-sort sort-icon" data-sort-icon="createdAt"></i></th>
+                            </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <footer th:replace="common/fragments :: footer"></footer>
+    </div>
+</div>
+<div class="modal fade" id="rejectionModal" tabindex="-1" aria-labelledby="rejectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rejectionModalLabel">관리자 가입 거부</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2"><strong id="rejectionAdminName">선택한 관리자</strong>의 회원가입을 거부합니다.</p>
+                <label for="rejectionReasonInput" class="form-label">거부 사유</label>
+                <textarea class="form-control" id="rejectionReasonInput" rows="5" maxlength="500" placeholder="거부 사유를 입력하세요."></textarea>
+                <div class="form-text">거부 사유는 필수입니다.</div>
+                <div class="invalid-feedback">거부 사유를 입력해 주세요.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                <button type="button" class="btn btn-danger" id="confirmRejectionBtn">
+                    <i class="fas fa-user-times me-1"></i>가입 거부
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div th:replace="common/fragments :: common-scripts"></div>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tbody = document.querySelector('table tbody');
+        const sizeSelect = document.getElementById('sizeSelect');
+        const roleSelect = document.getElementById('roleSelect');
+        const statusSelect = document.getElementById('statusSelect');
+        const keywordInput = document.getElementById('keywordInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const totalCountSpan = document.getElementById('totalCount');
+        const deleteCheckedBtn = document.getElementById('deleteCheckedBtn');
+        const selectAllCheckbox = document.getElementById('selectAll');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        let currentPage = 1;
+        let currentSortBy = 'createdAt';
+        let currentDirection = 'desc';
+
+        const roleLabels = {
+            SUPER_ADMIN: '슈퍼 관리자',
+            OPERATION_ADMIN: '운영 관리자',
+            CS_ADMIN: 'CS 관리자'
+        };
+
+        const statusLabels = {
+            ACTIVE: '활성',
+            INACTIVE: '비활성',
+            SUSPENDED: '정지',
+            PENDING: '승인 대기',
+            REJECTED: '거부'
+        };
+
+        const statusBadgeClasses = {
+            ACTIVE: 'bg-success',
+            INACTIVE: 'bg-secondary',
+            SUSPENDED: 'bg-warning text-dark',
+            PENDING: 'bg-info text-dark',
+            REJECTED: 'bg-danger'
+        };
+
+        let paginationArea = document.querySelector('.pagination');
+        if (!paginationArea) {
+            paginationArea = document.createElement('ul');
+            paginationArea.className = 'pagination justify-content-center mt-4';
+            document.querySelector('.card-body').appendChild(paginationArea);
+        }
+
+        window.loadAdmins = function (page = 1) {
+            currentPage = page;
+            hideMessages();
+
+            const params = new URLSearchParams({
+                page: page,
+                size: sizeSelect.value,
+                sortBy: currentSortBy,
+                direction: currentDirection
+            });
+
+            const keyword = keywordInput.value.trim();
+            if (keyword) params.append('keyword', keyword);
+            if (roleSelect.value) params.append('role', roleSelect.value);
+            if (statusSelect.value) params.append('status', statusSelect.value);
+
+            fetch(`/admins?${params.toString()}`, {
+                method: 'GET',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+                    if (!response.ok || !body.success) throw createError(body, response.status);
+                    return body.data;
+                })
+                .then(data => {
+                    const admins = data.content ?? data.items ?? [];
+                    const numberOfElements = data.numberOfElements ?? admins.length;
+                    const totalElements = data.totalElements ?? data.totalCount ?? admins.length;
+                    const totalPages = data.totalPages ?? 0;
+                    const pageNumber = data.number ?? ((data.currentPage ?? page) - 1);
+
+                    totalCountSpan.textContent = `${numberOfElements} / ${totalElements}`;
+                    renderTable(admins);
+                    renderPagination(totalPages, pageNumber);
+                })
+                .catch(error => {
+                    console.error('Error fetching admins:', error);
+                    tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">관리자 목록을 불러오지 못했습니다.</td></tr>`;
+                    handleError(error);
+                });
+        };
+
+        function renderTable(admins) {
+            if (!admins || admins.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center">데이터가 없습니다.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = admins.map(admin => {
+                const statusLabel = statusLabels[admin.status] ?? admin.status;
+                const statusBadgeClass = statusBadgeClasses[admin.status] ?? 'bg-secondary';
+                const formattedCreateDate = (admin.createdAt ?? '').toString().substring(0, 10);
+
+                return `
+                    <tr data-id="${admin.id}">
+                        <td class="text-center"><input class="form-check-input row-checkbox" type="checkbox" value="${admin.id}"></td>
+                        <td class="text-center">${admin.id}</td>
+                        <td>
+                            <button class="btn btn-link p-0 text-decoration-none fw-semibold" type="button" onclick="viewAdmin(${admin.id})">
+                                ${escapeHtml(admin.name ?? '')}
+                            </button>
+                        </td>
+                        <td>${escapeHtml(admin.email ?? '')}</td>
+                        <td>${escapeHtml(admin.phoneNumber ?? '-')}</td>
+                        <td>
+                            <select class="form-select form-select-sm" onchange="changeAdminRole(${admin.id}, this, '${admin.role}')">
+                                ${createRoleOptions(admin.role)}
+                            </select>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-1">
+                                <select class="form-select form-select-sm" onchange="changeAdminStatus(${admin.id}, this, '${admin.status}')">
+                                    ${createStatusOptions(admin.status)}
+                                </select>
+                                <span class="badge ${statusBadgeClass}">${statusLabel}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <select class="form-select form-select-sm" onchange="changeApprovalStatus(${admin.id}, '${escapeHtml(admin.name ?? '')}', this, '${getApprovalValue(admin.status)}')">
+                                ${createApprovalOptions(getApprovalValue(admin.status))}
+                            </select>
+                        </td>
+                        <td class="text-center">${formattedCreateDate}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            selectAllCheckbox.checked = false;
+        }
+
+        function createRoleOptions(currentRole) {
+            return Object.entries(roleLabels)
+                .map(([value, label]) => `<option value="${value}" ${value === currentRole ? 'selected' : ''}>${label}</option>`)
+                .join('');
+        }
+
+        function createStatusOptions(currentStatus) {
+            const changeableStatuses = {
+                ACTIVE: '활성',
+                INACTIVE: '비활성',
+                SUSPENDED: '정지',
+                PENDING: '승인 대기',
+                REJECTED: '거부'
+            };
+
+            return Object.entries(changeableStatuses)
+                .map(([value, label]) => `<option value="${value}" ${value === currentStatus ? 'selected' : ''}>${label}</option>`)
+                .join('');
+        }
+
+        function getApprovalValue(status) {
+            if (status === 'PENDING') return 'PENDING';
+            if (status === 'REJECTED') return 'REJECTED';
+            return 'APPROVED';
+        }
+
+        function createApprovalOptions(currentApproval) {
+            const approvals = {
+                PENDING: '승인 대기',
+                APPROVED: '승인',
+                REJECTED: '거부'
+            };
+
+            return Object.entries(approvals)
+                .map(([value, label]) => `<option value="${value}" ${value === currentApproval ? 'selected' : ''}>${label}</option>`)
+                .join('');
+        }
+
+        window.changeAdminRole = function (adminId, selectElement, previousRole) {
+            const newRole = selectElement.value;
+            if (newRole === previousRole) return;
+            if (!confirm('관리자 역할을 변경하시겠습니까?')) {
+                selectElement.value = previousRole;
+                return;
+            }
+
+            fetch(`/admins/${adminId}/role`, {
+                method: 'PATCH',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ role: newRole })
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+                    if (!response.ok || !body.success) throw createError(body, response.status);
+                    showSuccess(body.message || '관리자 역할이 변경되었습니다.');
+                    loadAdmins(currentPage);
+                })
+                .catch(error => {
+                    selectElement.value = previousRole;
+                    handleError(error);
+                });
+        };
+
+        window.changeAdminStatus = function (adminId, selectElement, previousStatus) {
+            const newStatus = selectElement.value;
+            if (newStatus === previousStatus) return;
+            if (!confirm('관리자 상태를 변경하시겠습니까?')) {
+                selectElement.value = previousStatus;
+                return;
+            }
+
+            fetch(`/admins/${adminId}/status`, {
+                method: 'PATCH',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+                    if (!response.ok || !body.success) throw createError(body, response.status);
+                    showSuccess(body.message || '관리자 상태가 변경되었습니다.');
+                    loadAdmins(currentPage);
+                })
+                .catch(error => {
+                    selectElement.value = previousStatus;
+                    handleError(error);
+                });
+        };
+
+        window.approveAdmin = function (adminId, selectElement, previousValue) {
+            if (!confirm('해당 관리자를 승인하시겠습니까?')) {
+                if (selectElement) selectElement.value = previousValue;
+                return;
+            }
+
+            fetch(`/admins/${adminId}/approval`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+                    if (!response.ok || !body.success) throw createError(body, response.status);
+                    showSuccess(body.message || '관리자 승인이 완료되었습니다.');
+                    loadAdmins(currentPage);
+                })
+                .catch(error => {
+                    if (selectElement) selectElement.value = previousValue;
+                    handleError(error);
+                });
+        };
+
+        let rejectionTarget = null;
+
+        window.changeApprovalStatus = function (adminId, adminName, selectElement, previousValue) {
+            const newValue = selectElement.value;
+
+            if (newValue === previousValue) return;
+
+            if (newValue === 'APPROVED') {
+                approveAdmin(adminId, selectElement, previousValue);
+                return;
+            }
+
+            if (newValue === 'REJECTED') {
+                selectElement.value = previousValue;
+                rejectionTarget = { adminId, adminName, selectElement, previousValue };
+                document.getElementById('rejectionAdminName').textContent = adminName || '선택한 관리자';
+                document.getElementById('rejectionReasonInput').value = '';
+                document.getElementById('rejectionReasonInput').classList.remove('is-invalid');
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectionModal')).show();
+                return;
+            }
+
+            alert('승인 대기 상태로 되돌리는 API는 현재 제공되지 않습니다.');
+            selectElement.value = previousValue;
+        };
+
+        document.getElementById('confirmRejectionBtn').addEventListener('click', function () {
+            if (!rejectionTarget) return;
+
+            const reasonInput = document.getElementById('rejectionReasonInput');
+            const reason = reasonInput.value.trim();
+
+            if (!reason) {
+                reasonInput.classList.add('is-invalid');
+                reasonInput.focus();
+                return;
+            }
+
+            this.disabled = true;
+
+            fetch(`/admins/${rejectionTarget.adminId}/rejection`, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({ reason })
+            })
+                .then(async response => {
+                    const body = await readResponseBody(response);
+                    if (!response.ok || !body.success) throw createError(body, response.status);
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('rejectionModal')).hide();
+                    showSuccess(body.message || '관리자 가입 신청이 거부되었습니다.');
+                    loadAdmins(currentPage);
+                })
+                .catch(error => {
+                    if (rejectionTarget?.selectElement) {
+                        rejectionTarget.selectElement.value = rejectionTarget.previousValue;
+                    }
+                    handleError(error);
+                })
+                .finally(() => {
+                    this.disabled = false;
+                });
+        });
+
+        document.getElementById('rejectionModal').addEventListener('hidden.bs.modal', function () {
+            if (rejectionTarget?.selectElement) {
+                rejectionTarget.selectElement.value = rejectionTarget.previousValue;
+            }
+            rejectionTarget = null;
+            document.getElementById('rejectionReasonInput').value = '';
+            document.getElementById('rejectionReasonInput').classList.remove('is-invalid');
+        });
+
+        document.getElementById('rejectionReasonInput').addEventListener('input', function () {
+            if (this.value.trim()) this.classList.remove('is-invalid');
+        });
+
+        function renderPagination(totalPages, number) {
+            if (totalPages <= 0) {
+                paginationArea.innerHTML = '';
+                return;
+            }
+
+            const current = number + 1;
+            let html = '';
+
+            html += `<li class="page-item ${current === 1 ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" onclick="if(${current} > 1) window.loadAdmins(${current - 1});">이전</a></li>`;
+
+            for (let page = 1; page <= totalPages; page++) {
+                html += `<li class="page-item ${page === current ? 'active' : ''}"><a class="page-link" href="javascript:void(0)" onclick="window.loadAdmins(${page});">${page}</a></li>`;
+            }
+
+            html += `<li class="page-item ${current >= totalPages ? 'disabled' : ''}"><a class="page-link" href="javascript:void(0)" onclick="if(${current} < ${totalPages}) window.loadAdmins(${current + 1});">다음</a></li>`;
+
+            paginationArea.innerHTML = html;
+        }
+
+        function updateSortIcons() {
+            document.querySelectorAll('.sort-icon').forEach(icon => {
+                const field = icon.dataset.sortIcon;
+                if (field === currentSortBy) {
+                    icon.className = currentDirection === 'asc'
+                        ? 'fas fa-sort-up sort-icon text-primary'
+                        : 'fas fa-sort-down sort-icon text-primary';
+                } else {
+                    icon.className = 'fas fa-sort sort-icon text-muted';
+                }
+            });
+        }
+
+        searchBtn.addEventListener('click', () => loadAdmins(1));
+        keywordInput.addEventListener('keypress', e => { if (e.key === 'Enter') loadAdmins(1); });
+        roleSelect.addEventListener('change', () => loadAdmins(1));
+        statusSelect.addEventListener('change', () => loadAdmins(1));
+        sizeSelect.addEventListener('change', () => loadAdmins(1));
+
+        document.querySelectorAll('th.sortable').forEach(th => {
+            th.addEventListener('click', function () {
+                const field = this.dataset.sort;
+                if (currentSortBy === field) {
+                    currentDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSortBy = field;
+                    currentDirection = 'asc';
+                }
+                updateSortIcons();
+                loadAdmins(1);
+            });
+        });
+
+        selectAllCheckbox.addEventListener('change', function () {
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = selectAllCheckbox.checked);
+        });
+
+        deleteCheckedBtn.addEventListener('click', function () {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) {
+                alert('삭제할 관리자를 선택해 주세요.');
+                return;
+            }
+
+            const idsToDelete = Array.from(checkedBoxes).map(cb => Number(cb.value));
+            if (!confirm(`선택한 ${checkedBoxes.length}명의 관리자를 정말 삭제하시겠습니까?\n(선택된 관리자 ID: ${idsToDelete.join(', ')})`)) return;
+
+            deleteCheckedBtn.disabled = true;
+
+            Promise.all(
+                idsToDelete.map(adminId =>
+                    fetch(`/admins/${adminId}`, {
+                        method: 'DELETE',
+                        credentials: 'same-origin',
+                        headers: { 'Accept': 'application/json' }
+                    }).then(async response => {
+                        const body = await readResponseBody(response);
+                        if (!response.ok || !body.success) throw createError(body, response.status);
+                        return body;
+                    })
+                )
+            )
+                .then(() => {
+                    showSuccess(`선택한 ${idsToDelete.length}명의 관리자가 삭제되었습니다.`);
+                    selectAllCheckbox.checked = false;
+                    loadAdmins(1);
+                })
+                .catch(handleError)
+                .finally(() => { deleteCheckedBtn.disabled = false; });
+        });
+
+        window.viewAdmin = function (id) {
+            window.location.href = `/view/admins/${id}`;
+        };
+
+        async function readResponseBody(response) {
+            const text = await response.text();
+            if (!text) {
+                return {
+                    success: response.ok,
+                    code: response.status,
+                    message: response.ok ? '요청에 성공하였습니다.' : '요청 처리에 실패했습니다.',
+                    errorCode: null,
+                    data: null
+                };
+            }
+
+            try {
+                return JSON.parse(text);
+            } catch (error) {
+                return {
+                    success: false,
+                    code: response.status,
+                    message: '서버 응답을 해석하지 못했습니다.',
+                    errorCode: 'INVALID_RESPONSE',
+                    data: null
+                };
+            }
+        }
+
+        function createError(body, httpStatus) {
+            const error = new Error(body?.message ?? `요청 처리에 실패했습니다. (${httpStatus})`);
+            error.status = body?.code ?? httpStatus;
+            error.errorCode = body?.errorCode ?? null;
+            return error;
+        }
+
+        function handleError(error) {
+            console.error('관리자 관리 오류:', error);
+
+            if (error.status === 401) {
+                alert(error.message || '로그인이 필요합니다.');
+                window.location.href = '/login';
+                return;
+            }
+
+            if (error.status === 403) {
+                alert(error.message || '슈퍼 관리자 권한이 필요합니다.');
+                window.location.href = '/';
+                return;
+            }
+
+            const message = error.errorCode ? `${error.message} [${error.errorCode}]` : error.message;
+            showError(message);
+        }
+
+        function showError(message) {
+            successMessage.classList.add('d-none');
+            successMessage.textContent = '';
+            errorMessage.textContent = message || '요청 처리에 실패했습니다.';
+            errorMessage.classList.remove('d-none');
+        }
+
+        function showSuccess(message) {
+            errorMessage.classList.add('d-none');
+            errorMessage.textContent = '';
+            successMessage.textContent = message || '요청에 성공했습니다.';
+            successMessage.classList.remove('d-none');
+        }
+
+        function hideMessages() {
+            errorMessage.classList.add('d-none');
+            errorMessage.textContent = '';
+            successMessage.classList.add('d-none');
+            successMessage.textContent = '';
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#039;');
+        }
+
+        updateSortIcons();
+        loadAdmins(1);
+    });
+</script>
+</body>
+</html>

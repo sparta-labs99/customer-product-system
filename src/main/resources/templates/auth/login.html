@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+
+<head th:replace="~{common/fragments :: common-head}">
+</head>
+
+<body class="bg-primary">
+
+<div id="layoutAuthentication">
+
+    <div id="layoutAuthentication_content">
+
+        <main>
+            <div class="container">
+
+                <div class="row justify-content-center">
+
+                    <div class="col-lg-5">
+
+                        <div class="card shadow-lg border-0 rounded-lg mt-5">
+
+                            <div class="card-header">
+
+                                <h3 class="text-center font-weight-light my-4">
+                                    관리자 로그인
+                                </h3>
+
+                            </div>
+
+                            <div class="card-body">
+
+                                <form id="loginForm">
+
+                                    <!-- 이메일 -->
+                                    <div class="form-floating mb-3">
+
+                                        <input
+                                                id="email"
+                                                class="form-control"
+                                                type="email"
+                                                placeholder="name@example.com"
+                                                autocomplete="email"
+                                                required
+                                        >
+
+                                        <label for="email">
+                                            이메일
+                                        </label>
+
+                                    </div>
+
+                                    <!-- 비밀번호 -->
+                                    <div class="form-floating mb-3">
+
+                                        <input
+                                                id="password"
+                                                class="form-control"
+                                                type="password"
+                                                placeholder="비밀번호"
+                                                autocomplete="current-password"
+                                                required
+                                        >
+
+                                        <label for="password">
+                                            비밀번호
+                                        </label>
+
+                                    </div>
+
+                                    <!-- 오류 메시지 -->
+                                    <div
+                                            id="errorMessage"
+                                            class="alert alert-danger d-none"
+                                            role="alert"
+                                    >
+                                    </div>
+
+                                    <!-- 로그인 버튼 -->
+                                    <div class="d-grid mt-4">
+
+                                        <button
+                                                id="loginBtn"
+                                                class="btn btn-primary"
+                                                type="submit"
+                                        >
+                                            로그인
+                                        </button>
+
+                                    </div>
+
+                                </form>
+
+                            </div>
+
+                            <div class="card-footer text-center py-3">
+
+                                <div class="small">
+
+                                    아직 관리자 계정이 없으신가요?
+
+                                    <a th:href="@{/signup}">
+                                        관리자 가입 신청
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+    </div>
+
+    <div id="layoutAuthentication_footer">
+
+        <footer th:replace="~{common/fragments :: footer}">
+        </footer>
+
+    </div>
+
+</div>
+
+<div th:replace="~{common/fragments :: common-scripts}">
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+        const emailInput =
+            document.getElementById("email");
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const loginButton =
+            document.getElementById("loginBtn");
+
+        const errorMessage =
+            document.getElementById("errorMessage");
+
+
+        /**
+         * 로그인 폼 제출
+         *
+         * POST /login
+         */
+        loginForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                /*
+                 * form의 기본 제출과 페이지 새로고침을 막는다.
+                 */
+                event.preventDefault();
+
+                hideError();
+
+                /*
+                 * HTML required, email 형식 등의
+                 * 기본 유효성 검사를 실행한다.
+                 */
+                if (!loginForm.checkValidity()) {
+
+                    loginForm.reportValidity();
+
+                    return;
+                }
+
+                /*
+                 * 중복 로그인 요청을 방지한다.
+                 */
+                setLoginButtonLoading(true);
+
+                /*
+                 * AdminLoginRequest 필드명과 정확히 일치해야 한다.
+                 */
+                const requestBody = {
+                    email: emailInput.value.trim(),
+                    password: passwordInput.value
+                };
+
+                try {
+
+                    const response = await fetch(
+                        "/login",
+                        {
+                            method: "POST",
+
+                            /*
+                             * 로그인 성공 후 서버가 발급한
+                             * JSESSIONID 쿠키를 브라우저가 저장하게 한다.
+                             */
+                            credentials: "same-origin",
+
+                            headers: {
+                                "Content-Type": "application/json",
+                                "Accept": "application/json"
+                            },
+
+                            body: JSON.stringify(requestBody)
+                        }
+                    );
+
+
+                    /*
+                     * 400, 401, 403, 500 등의 오류 응답 처리
+                     */
+                    if (!response.ok) {
+
+                        const apiError =
+                            await readApiError(response);
+
+                        throw createApiError(apiError);
+                    }
+
+
+                    /*
+                     * 현재 로그인 Controller는
+                     * AdminLoginResponse를 반환한다.
+                     *
+                     * 로그인 성공 여부 판단에는 응답 데이터가
+                     * 반드시 필요하지 않으므로 선택적으로 읽는다.
+                     */
+                    await readOptionalJson(response);
+
+
+                    /*
+                     * 로그인 성공 후 메인 화면으로 이동한다.
+                     */
+                    window.location.href = "/";
+
+                } catch (error) {
+
+                    console.error(
+                        "관리자 로그인 요청 오류:",
+                        error
+                    );
+
+                    showError(
+                        getDisplayErrorMessage(error)
+                    );
+
+                } finally {
+
+                    setLoginButtonLoading(false);
+                }
+            }
+        );
+
+
+        /**
+         * 로그인 버튼의 로딩 상태를 변경한다.
+         */
+        function setLoginButtonLoading(loading) {
+
+            loginButton.disabled =
+                loading;
+
+            loginButton.textContent =
+                loading
+                    ? "로그인 중..."
+                    : "로그인";
+        }
+
+
+        /**
+         * 정상 응답의 JSON 본문을 선택적으로 읽는다.
+         *
+         * AdminLoginResponse JSON이 있으면 반환하고,
+         * 본문이 비어 있어도 오류를 발생시키지 않는다.
+         */
+        async function readOptionalJson(response) {
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+            if (!contentType.includes("application/json")) {
+                return null;
+            }
+
+            const text =
+                await response.text();
+
+            if (!text) {
+                return null;
+            }
+
+            return JSON.parse(text);
+        }
+
+
+        /**
+         * ApiResponse 실패 응답을 읽는다.
+         *
+         * 예상 응답 예시:
+         *
+         * {
+         *     "status": 401,
+         *     "errorCode": "ADM_005",
+         *     "message": "이메일 또는 비밀번호가 일치하지 않습니다.",
+         *     "data": null
+         * }
+         */
+        async function readApiError(response) {
+
+            const defaultError = {
+                status: response.status,
+                errorCode: "UNKNOWN_ERROR",
+                message: `로그인 요청에 실패했습니다. (${response.status})`
+            };
+
+            const contentType =
+                response.headers.get("content-type") || "";
+
+
+            /*
+             * JSON이 아닌 문자열 오류 응답 처리
+             */
+            if (!contentType.includes("application/json")) {
+
+                const text =
+                    await response.text();
+
+                return {
+                    ...defaultError,
+                    message: text || defaultError.message
+                };
+            }
+
+
+            const text =
+                await response.text();
+
+            if (!text) {
+                return defaultError;
+            }
+
+
+            let responseBody;
+
+            try {
+
+                responseBody =
+                    JSON.parse(text);
+
+            } catch (error) {
+
+                return {
+                    ...defaultError,
+                    message: text
+                };
+            }
+
+
+            /*
+             * ApiResponse의 실제 필드명을 기준으로 읽는다.
+             *
+             * status / statusCode
+             * errorCode / code
+             *
+             * 두 형태를 모두 방어적으로 처리한다.
+             */
+            return {
+                status:
+                    responseBody.status
+                    ?? responseBody.statusCode
+                    ?? response.status,
+
+                errorCode:
+                    responseBody.errorCode
+                    ?? responseBody.code
+                    ?? "UNKNOWN_ERROR",
+
+                message:
+                    responseBody.message
+                    ?? defaultError.message
+            };
+        }
+
+
+        /**
+         * ApiResponse 오류 정보를 JavaScript Error로 변환한다.
+         */
+        function createApiError(apiError) {
+
+            const error =
+                new Error(apiError.message);
+
+            error.status =
+                apiError.status;
+
+            error.errorCode =
+                apiError.errorCode;
+
+            return error;
+        }
+
+
+        /**
+         * 화면에 표시할 로그인 오류 메시지를 만든다.
+         *
+         * 예:
+         * 이메일 또는 비밀번호가 일치하지 않습니다. [ADM_005]
+         */
+        function getDisplayErrorMessage(error) {
+
+            const message =
+                error?.message
+                || "로그인 요청 처리 중 오류가 발생했습니다.";
+
+            if (
+                error?.errorCode
+                && error.errorCode !== "UNKNOWN_ERROR"
+            ) {
+                return `${message} [${error.errorCode}]`;
+            }
+
+            return message;
+        }
+
+
+        /**
+         * 오류 메시지 표시
+         */
+        function showError(message) {
+
+            errorMessage.textContent =
+                message || "로그인에 실패했습니다.";
+
+            errorMessage.classList.remove("d-none");
+        }
+
+
+        /**
+         * 오류 메시지 숨김
+         */
+        function hideError() {
+
+            errorMessage.textContent = "";
+
+            errorMessage.classList.add("d-none");
+        }
+    });
+</script>
+
+</body>
+</html>

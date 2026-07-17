@@ -1,5 +1,4 @@
 package com.example.customerproductsystem.common.config;
-
 import com.example.customerproductsystem.auth.interceptor.LoginCheckInterceptor;
 import com.example.customerproductsystem.auth.interceptor.SuperAdminCheckInterceptor;
 import lombok.RequiredArgsConstructor;
@@ -20,19 +19,18 @@ public class WebConfig implements WebMvcConfigurer {
         // 로그인 인증 인터셉터
         registry.addInterceptor(loginCheckInterceptor)
                 .order(1)
-                .addPathPatterns(
-                    "/admins/**", 
-                    "/products/**", 
-                    "/reviews/**", 
-                    "/customers", 
-                    "/customers/**"
-                )
-                .excludePathPatterns("/signup", "/login");
+                .addPathPatterns("/admins/**", "/view/admins/**")
+                .excludePathPatterns( "/login",
+                        "/signup",
+                        "/css/**",
+                        "/js/**",
+                        "/assets/**",
+                        "/error");
 
         // 슈퍼 관리자 권한 인터셉터
         registry.addInterceptor(superAdminCheckInterceptor)
                 .order(2)
-                .addPathPatterns("/admins/**", "/customers", "/customers/**")                 
+                .addPathPatterns("/admins/**")
                 .excludePathPatterns(
                         "/signup",
                         "/login",
