@@ -37,7 +37,7 @@ public enum ErrorCode {
     ADMIN_INVALID_SORT(HttpStatus.BAD_REQUEST, "ADM_022", "지원하지 않는 정렬 기준입니다."),
     ADMIN_INVALID_SORT_DIRECTION(HttpStatus.BAD_REQUEST, "ADM_023", "정렬 방향은 asc 또는 desc만 사용할 수 있습니다."),
     ADMIN_DELETED(HttpStatus.FORBIDDEN, "ADM_024", "삭제된 관리자입니다."),
-
+    OPERATION_ADMIN_REQUIRED(HttpStatus.FORBIDDEN, "ADM_025", "운영 관리자 권한이 필요합니다."),
 
     // Customer 도메인 에러
     CUSTOMER_NOT_FOUND(HttpStatus.NOT_FOUND, "CUS_001", "존재하지 않는 고객입니다."),
@@ -53,6 +53,7 @@ public enum ErrorCode {
     PRODUCT_NOT_FOUND(HttpStatus.NOT_FOUND, "PRO_001", "존재하지 않는 상품입니다."),
     INVALID_CATEGORY(HttpStatus.BAD_REQUEST, "PRO_002", "유효하지 않은 카테고리 요청입니다."),
     INVALID_PRODUCT_STATUS(HttpStatus.BAD_REQUEST, "PRO_003", "유효하지 않은 상태 요청입니다."),
+    INVALID_PRODUCT_STATUS_ZERO_STOCK(HttpStatus.BAD_REQUEST, "PRO_004", "재고가 0인 상품은 판매중 상태가 될 수 없습니다."),
 
     // REVIEW 도메인 에러
     REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "REV_001", "존재하지 않는 리뷰입니다."),
