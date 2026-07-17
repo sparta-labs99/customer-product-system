@@ -33,7 +33,7 @@ public class CustomerController {
     }
 
     /**
-     * 고객 조회 (페이징)
+     * 고객 조회 (페이징 처리 및 검색)
      */
     @GetMapping
     public ResponseEntity<ApiResponse<Page<CreateCustomerResponse>>> getAllCustomers(
@@ -90,18 +90,18 @@ public class CustomerController {
     /**
      * 고객 다중 삭제 (선택 삭제)
      */
-    @DeleteMapping
-    public ResponseEntity<ApiResponse<Void>> deleteCustomers(@RequestBody List<Long> ids) {
-        customerService.deleteCustomers(ids);
+    @PatchMapping("/withdraw")
+    public ResponseEntity<ApiResponse<Void>> withdrawCustomers(@RequestBody List<Long> ids) {
+        customerService.withdrawCustomers(ids);
         return ResponseEntity.ok(ApiResponse.success());
     }
 
     /**
      * 고객 삭제 (상태 변경 - Soft Delete)
      */
-    @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteCustomer(@PathVariable Long id) {
-        customerService.deleteCustomer(id);
+    @PatchMapping("/{id}/withdraw")
+    public ResponseEntity<ApiResponse<Void>> withdrawCustomer(@PathVariable Long id) {
+        customerService.withdrawCustomer(id);
         return ResponseEntity.ok(ApiResponse.success());
     }
 }

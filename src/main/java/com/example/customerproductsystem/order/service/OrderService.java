@@ -52,7 +52,7 @@ public class OrderService {
                 .orElseThrow(() -> new CustomerException.NotFound(request.getCustomerId()));
 
         Product product = productRepository.findById(request.getProductId())
-                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));;
+                .orElseThrow(() -> new CustomException(ErrorCode.PRODUCT_NOT_FOUND));
 
         Admin admin = adminRepository.getReferenceById(sessionAdmin.id());
 
@@ -80,7 +80,7 @@ public class OrderService {
      * CS 주문 리스트 조회 (페이징 및 검색)
      */
     @Transactional(readOnly = true)
-    public Page<OrderSearchResponse> getOrders(
+    public Page<OrderSearchResponse> getAllOrders(
             OrderSearchCondition condition,
             Pageable pageable) {
 

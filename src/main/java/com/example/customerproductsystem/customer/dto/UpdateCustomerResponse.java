@@ -2,11 +2,14 @@ package com.example.customerproductsystem.customer.dto;
 
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.entity.CustomerStatus;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UpdateCustomerResponse {
 
     private final Long id;
@@ -16,12 +19,14 @@ public class UpdateCustomerResponse {
     private final CustomerStatus status;
     private final LocalDateTime updatedAt;
 
-    public UpdateCustomerResponse(Customer customer) {
-        this.id = customer.getId();
-        this.name = customer.getName();
-        this.email = customer.getEmail();
-        this.phoneNumber = customer.getPhoneNumber();
-        this.status = customer.getStatus();
-        this.updatedAt = customer.getUpdatedAt();
+    public static UpdateCustomerResponse from(Customer customer) {
+        return new UpdateCustomerResponse(
+                customer.getId(),
+                customer.getName(),
+                customer.getEmail(),
+                customer.getPhoneNumber(),
+                customer.getStatus(),
+                customer.getUpdatedAt()
+        );
     }
 }
