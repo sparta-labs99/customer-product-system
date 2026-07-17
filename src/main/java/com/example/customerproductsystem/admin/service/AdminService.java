@@ -32,9 +32,14 @@ public class AdminService {
         return AdminDetailResponse.from(admin);
     }
 
-    @Transactional
-    public PageResponse<AdminSummaryResponse> getAdmins(AdminSearchCondition condition) {
-        Sort sort = createSort(condition.getSortBy(), condition.getDirection());
+    @Transactional(readOnly = true)
+    public PageResponse<AdminSummaryResponse> getAdmins(
+            AdminSearchCondition condition
+    ) {
+        Sort sort = createSort(
+                condition.getSortBy(),
+                condition.getDirection()
+        );
 
         Pageable pageable = PageRequest.of(
                 condition.getPage() - 1,
@@ -52,11 +57,16 @@ public class AdminService {
                 AdminSpecification.statusEquals(condition.getStatus())
         );
 
+        // 삭제 상태를 직접 조회하는 경우가 아니면 삭제된 관리자를 제외한다.
+        if (condition.getStatus() != AdminStatus.DELETED) {
+            spec = spec.and(AdminSpecification.notDeleted());
+        }
+
         Page<AdminSummaryResponse> responsePage = adminRepository
                 .findAll(spec, pageable)
                 .map(AdminSummaryResponse::from);
 
-        return PageResponse.from((responsePage));
+        return PageResponse.from(responsePage);
     }
 
     @Transactional
@@ -125,17 +135,28 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteAdmin(Long adminId) {
+    public void deleteAdmin(Long adminId, Long loginAdminId) {
 
-        Admin admin = findAdmin(adminId);
+        if (adminId.equals(loginAdminId)) {
+            throw new CustomException(
+                    HttpStatus.BAD_REQUEST,
+                    "현재 로그인한 관리자 계정은 삭제할 수 없습니다."
+            );
+        }
 
-        validateLastActiveSuperAdminDeletion(admin);
+        Admin admin = adminRepository
+                .findByIdAndStatusNot(adminId, AdminStatus.DELETED)
+                .orElseThrow(() -> new CustomException(
+                        HttpStatus.NOT_FOUND,
+                        "관리자를 찾을 수 없습니다."
+                ));
 
-        adminRepository.delete(admin);
+        admin.delete();
     }
 
+    // 삭제된 상태의 사용자는 찾지 못한다.
     private Admin findAdmin(Long adminId) {
-        return adminRepository.findById(adminId)
+        return adminRepository.findByIdAndStatusNot(adminId, AdminStatus.DELETED)
                 .orElseThrow(() -> new AdminException.NotFound(adminId));
     }
 

@@ -60,4 +60,12 @@ public class AdminSpecification {
                         AdminRole.SUPER_ADMIN
                 );
     }
+
+    public static Specification<Admin> notDeleted() {
+        return (root, query, criteriaBuilder) ->
+                criteriaBuilder.notEqual(
+                        root.get("status"),
+                        AdminStatus.DELETED
+                );
+    }
 }

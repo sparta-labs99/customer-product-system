@@ -146,9 +146,10 @@ public class Admin extends BaseEntity {
         this.status = status;
     }
 
+    // soft delete
+    public void delete() {this.status = AdminStatus.DELETED;}
+
     public void changePassword(String encodedPassword) {
         this.password = encodedPassword;
     }
-
-
 }

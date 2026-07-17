@@ -83,6 +83,8 @@ public class AdminAuthService {
             case SUSPENDED -> throw new AdminException.Suspended();
 
             case INACTIVE -> throw new AdminException.Inactive();
+
+            case DELETED ->  throw new AdminException.Deleted();
         }
     }
 }
