@@ -1,7 +1,9 @@
 package com.example.customerproductsystem.common.error;
 
 import com.example.customerproductsystem.common.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,7 +31,25 @@ public class GlobalExceptionHandler {
 
     // 커스텀 에러 핸들
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException ex) {
+    public ResponseEntity<?> handleCustomException(CustomException ex, HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String accept = request.getHeader("Accept");
+        
+        boolean isHtmlRequest = (uri != null && (uri.startsWith("/view/") || uri.equals("/") || uri.equals("/login") || uri.equals("/signup")))
+                || (accept != null && accept.contains("text/html"));
+
+        if (isHtmlRequest) {
+            if (ex.getStatus() == HttpStatus.UNAUTHORIZED) {
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .header(HttpHeaders.LOCATION, "/login")
+                        .build();
+            } else if (ex.getStatus() == HttpStatus.FORBIDDEN) {
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .header(HttpHeaders.LOCATION, "/view/dashboard?error=forbidden")
+                        .build();
+            }
+        }
+
         return ResponseEntity
                 .status(ex.getStatus())
                 .body(ApiResponse.fail(ex.getStatus().value(), ex.getErrorCode(), ex.getMessage()));
