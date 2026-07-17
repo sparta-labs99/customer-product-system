@@ -29,7 +29,7 @@ public class OperationAdminCheckInterceptor implements HandlerInterceptor {
             throw new AdminException.InvalidSession();
         }
 
-        if (loginAdmin.role() != AdminRole.OPERATION_ADMIN) {
+        if (loginAdmin.role() != AdminRole.SUPER_ADMIN && loginAdmin.role() != AdminRole.OPERATION_ADMIN) {
             throw new AdminException.OperationAdminRequired();
         }
 

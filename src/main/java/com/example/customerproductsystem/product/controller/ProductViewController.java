@@ -31,7 +31,7 @@ public class ProductViewController {
         if (sessionAdmin == null) {
             throw new AdminException.NotLogin();
         }
-        if (sessionAdmin.role() != AdminRole.SUPER_ADMIN &&sessionAdmin.role() != AdminRole.CS_ADMIN) {
+        if (sessionAdmin.role() != AdminRole.SUPER_ADMIN && sessionAdmin.role() != AdminRole.OPERATION_ADMIN) {
             throw new AdminException.OperationAdminRequired();
         }
 
