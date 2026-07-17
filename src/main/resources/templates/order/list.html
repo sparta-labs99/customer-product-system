@@ -85,7 +85,7 @@
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
 
-        const isSuperAdmin = [[${session.LOGIN_ADMIN != null and session.LOGIN_ADMIN.role.name() == 'SUPER_ADMIN'}]];
+        // 모든 관리자가 상태 변경 가능하므로 권한 체크 변수 제거
 
         /**
          * 1. DOM 요소 및 전역 상태 관리
@@ -385,22 +385,13 @@
                             document.getElementById('modalCancelReason').textContent = data.cancelReason;
                         }
                     } else {
-                        if (isSuperAdmin) {
-                            // [슈퍼 관리자] 상태 변경 드롭다운 표시 & 주문취소 버튼 표시
-                            if(dropdownGroup) dropdownGroup.classList.remove('d-none');
-                            if(btnCancelOrder) btnCancelOrder.classList.remove('d-none');
-                            
-                            dropdownBtn.className = `btn btn-sm dropdown-toggle fw-bold ${getStatusBadgeClass(data.status)}`;
-                            dropdownBtn.innerHTML = getStatusName(data.status);
-                            dropdownBtn.setAttribute('data-status', data.status);
-                        } else {
-                            // [일반 관리자] 고정 뱃지
-                            if(fixedBadge) {
-                                fixedBadge.classList.remove('d-none');
-                                fixedBadge.className = `badge px-3 py-2 ${getStatusBadgeClass(data.status)}`;
-                                fixedBadge.textContent = getStatusName(data.status);
-                            }
-                        }
+                        // 모든 관리자에게 상태 변경 드롭다운 & 주문취소 버튼 표시
+                        if(dropdownGroup) dropdownGroup.classList.remove('d-none');
+                        if(btnCancelOrder) btnCancelOrder.classList.remove('d-none');
+                        
+                        dropdownBtn.className = `btn btn-sm dropdown-toggle fw-bold ${getStatusBadgeClass(data.status)}`;
+                        dropdownBtn.innerHTML = getStatusName(data.status);
+                        dropdownBtn.setAttribute('data-status', data.status);
                     }
 
                     // 모달 띄우기

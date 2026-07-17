@@ -1,7 +1,9 @@
 package com.example.customerproductsystem.common.error;
 
 import com.example.customerproductsystem.common.response.ApiResponse;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -29,7 +31,25 @@ public class GlobalExceptionHandler {
 
     // 커스텀 에러 핸들
     @ExceptionHandler(CustomException.class)
-    public ResponseEntity<ApiResponse<Void>> handleCustomException(CustomException ex) {
+    public ResponseEntity<?> handleCustomException(CustomException ex, HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String accept = request.getHeader("Accept");
+        
+        boolean isHtmlRequest = (uri != null && (uri.startsWith("/view/") || uri.equals("/") || uri.equals("/login") || uri.equals("/signup")))
+                || (accept != null && accept.contains("text/html"));
+
+        if (isHtmlRequest) {
+            if (ex.getStatus() == HttpStatus.UNAUTHORIZED) {
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .header(HttpHeaders.LOCATION, "/login")
+                        .build();
+            } else if (ex.getStatus() == HttpStatus.FORBIDDEN) {
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .header(HttpHeaders.LOCATION, "/view/dashboard?error=forbidden")
+                        .build();
+            }
+        }
+
         return ResponseEntity
                 .status(ex.getStatus())
                 .body(ApiResponse.fail(ex.getStatus().value(), ex.getErrorCode(), ex.getMessage()));
@@ -48,6 +68,26 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(HttpStatus.BAD_REQUEST.value(), ErrorCode.INVALID_INPUT_VALUE.getCode(), errorMessage));
     }
     
+    // 404 Not Found 에러 핸들 (Spring Boot 3.2+ NoResourceFoundException)
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public Object handleNoResourceFoundException(org.springframework.web.servlet.resource.NoResourceFoundException ex, HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String accept = request.getHeader("Accept");
+        
+        boolean isHtmlRequest = (uri != null && (uri.startsWith("/view/") || uri.equals("/") || uri.equals("/login") || uri.equals("/signup")))
+                || (accept != null && accept.contains("text/html"));
+
+        if (isHtmlRequest) {
+            org.springframework.web.servlet.ModelAndView mav = new org.springframework.web.servlet.ModelAndView("error/404");
+            mav.setStatus(HttpStatus.NOT_FOUND);
+            return mav;
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.fail(HttpStatus.NOT_FOUND.value(), "C005", "요청한 리소스를 찾을 수 없습니다."));
+    }
+
     // 알 수 없는 서버 에러 핸들
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception ex) {

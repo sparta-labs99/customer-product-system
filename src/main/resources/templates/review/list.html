@@ -59,14 +59,15 @@
                                 </div>
 
                                 <!-- 4. 맨 오른쪽에 위치한 선택 삭제 버튼 -->
-                                <button class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1" id="deleteCheckedBtn" type="button" style="height: 31px; font-size: 0.85rem;">
+                                <button class="btn btn-danger btn-sm shadow-sm d-flex align-items-center gap-1 text-nowrap" id="deleteCheckedBtn" type="button" style="height: 31px; font-size: 0.85rem;">
                                     <i class="fas fa-trash-alt"></i> 선택삭제
                                 </button>
                             </div>
 
                         </div>
-                        <table class="table table-bordered table-hover align-middle">
-                            <thead>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-nowrap">
+                                <thead>
                             <tr>
                                 <!-- 1. 맨 앞: 전체 선택 체크박스 -->
                                 <th class="text-center" style="width: 50px;">
@@ -87,6 +88,7 @@
                             <!-- JS가 이 곳에 데이터를 동적으로 채웁니다 -->
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </div>
             </div>
