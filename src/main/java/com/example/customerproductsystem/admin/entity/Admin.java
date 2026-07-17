@@ -128,11 +128,9 @@ public class Admin extends BaseEntity {
     // 관리자 정보 수정
     public void updateProfile(
             String name,
-            String email,
             String phoneNumber
     ) {
         this.name = name;
-        this.email = email;
         this.phoneNumber = phoneNumber;
     }
 

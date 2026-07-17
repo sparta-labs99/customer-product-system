@@ -104,7 +104,7 @@
                                                    type="email"
                                                    class="form-control"
                                                    placeholder="admin@example.com"
-                                                   required>
+                                                   readonly>
                                         </div>
                                     </div>
 
@@ -354,22 +354,11 @@
 
             const requestBody = {
                 name: nameInput.value.trim(),
-                email: emailInput.value.trim(),
                 phoneNumber: phoneNumberInput.value.trim()
             };
 
             if (!requestBody.name) {
                 showError("이름은 필수입니다.");
-                return;
-            }
-
-            if (!requestBody.email) {
-                showError("이메일은 필수입니다.");
-                return;
-            }
-
-            if (!isValidEmail(requestBody.email)) {
-                showError("올바른 이메일 형식이 아닙니다.");
                 return;
             }
 
@@ -532,7 +521,7 @@
         function handleError(error) {
             if (error.status === 401) {
                 alert(error.message || "로그인이 필요합니다.");
-                window.location.href = "/login";
+                window.location.href = "/view/login";
                 return;
             }
 

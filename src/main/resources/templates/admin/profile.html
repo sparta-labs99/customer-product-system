@@ -147,34 +147,19 @@
                                         이름
                                     </div>
 
-                                    <div
-                                            id="name"
-                                            class="col-sm-9"
-                                    >
-                                        -
-                                    </div>
-
-                                </div>
-
-                                <div class="row border-bottom py-3 align-items-center">
-
-                                    <div class="col-sm-3 fw-bold text-secondary">
-                                        이메일
-                                    </div>
-
                                     <div class="col-sm-9">
 
                                         <div
-                                                id="emailViewArea"
+                                                id="nameViewArea"
                                                 class="d-flex justify-content-between align-items-center gap-2"
                                         >
 
-                                            <span id="email">
+                                            <span id="name">
                                                 -
                                             </span>
 
                                             <button
-                                                    id="emailEditBtn"
+                                                    id="nameEditBtn"
                                                     type="button"
                                                     class="btn btn-sm btn-outline-primary"
                                             >
@@ -185,21 +170,21 @@
                                         </div>
 
                                         <div
-                                                id="emailEditArea"
+                                                id="nameEditArea"
                                                 class="d-none"
                                         >
 
                                             <div class="input-group">
 
                                                 <input
-                                                        id="emailInput"
-                                                        type="email"
+                                                        id="nameInput"
+                                                        type="text"
                                                         class="form-control"
-                                                        placeholder="변경할 이메일"
+                                                        placeholder="변경할 이름"
                                                 >
 
                                                 <button
-                                                        id="emailSaveBtn"
+                                                        id="nameSaveBtn"
                                                         type="button"
                                                         class="btn btn-primary"
                                                 >
@@ -207,7 +192,7 @@
                                                 </button>
 
                                                 <button
-                                                        id="emailCancelBtn"
+                                                        id="nameCancelBtn"
                                                         type="button"
                                                         class="btn btn-outline-secondary"
                                                 >
@@ -218,6 +203,21 @@
 
                                         </div>
 
+                                    </div>
+
+                                </div>
+
+                                <div class="row border-bottom py-3 align-items-center">
+
+                                    <div class="col-sm-3 fw-bold text-secondary">
+                                        이메일
+                                    </div>
+
+                                    <div
+                                            id="email"
+                                            class="col-sm-9"
+                                    >
+                                        -
                                     </div>
 
                                 </div>
@@ -362,23 +362,23 @@
         const profileArea =
             document.getElementById("profileArea");
 
-        const emailViewArea =
-            document.getElementById("emailViewArea");
+        const nameViewArea =
+            document.getElementById("nameViewArea");
 
-        const emailEditArea =
-            document.getElementById("emailEditArea");
+        const nameEditArea =
+            document.getElementById("nameEditArea");
 
-        const emailInput =
-            document.getElementById("emailInput");
+        const nameInput =
+            document.getElementById("nameInput");
 
-        const emailEditButton =
-            document.getElementById("emailEditBtn");
+        const nameEditButton =
+            document.getElementById("nameEditBtn");
 
-        const emailSaveButton =
-            document.getElementById("emailSaveBtn");
+        const nameSaveButton =
+            document.getElementById("nameSaveBtn");
 
-        const emailCancelButton =
-            document.getElementById("emailCancelBtn");
+        const nameCancelButton =
+            document.getElementById("nameCancelBtn");
 
         const phoneViewArea =
             document.getElementById("phoneViewArea");
@@ -529,85 +529,75 @@
             roleBadge.className =
                 `badge ${getRoleBadgeClass(profile.role)}`;
 
-            emailInput.value =
-                profile.email || "";
+            nameInput.value =
+                profile.name || "";
 
             phoneNumberInput.value =
                 profile.phoneNumber || "";
         }
 
 
-        emailEditButton.addEventListener(
+        nameEditButton.addEventListener(
             "click",
             function () {
 
                 hideError();
                 hideSuccess();
 
-                emailInput.value =
-                    currentProfile?.email || "";
+                nameInput.value =
+                    currentProfile?.name || "";
 
-                emailViewArea.classList.add("d-none");
-                emailEditArea.classList.remove("d-none");
+                nameViewArea.classList.add("d-none");
+                nameEditArea.classList.remove("d-none");
 
-                emailInput.focus();
+                nameInput.focus();
             }
         );
 
 
-        emailCancelButton.addEventListener(
+        nameCancelButton.addEventListener(
             "click",
             function () {
 
-                emailInput.value =
-                    currentProfile?.email || "";
+                nameInput.value =
+                    currentProfile?.name || "";
 
-                emailEditArea.classList.add("d-none");
-                emailViewArea.classList.remove("d-none");
+                nameEditArea.classList.add("d-none");
+                nameViewArea.classList.remove("d-none");
             }
         );
 
 
-        emailSaveButton.addEventListener(
+        nameSaveButton.addEventListener(
             "click",
             async function () {
 
-                const newEmail =
-                    emailInput.value.trim();
+                const newName =
+                    nameInput.value.trim();
 
                 hideError();
                 hideSuccess();
 
-                if (!newEmail) {
+                if (!newName) {
 
                     showError(
-                        "이메일은 필수입니다."
+                        "이름은 필수입니다."
                     );
 
                     return;
                 }
 
-                if (!isValidEmail(newEmail)) {
+                if (newName === currentProfile.name) {
 
                     showError(
-                        "올바른 이메일 형식이 아닙니다."
-                    );
-
-                    return;
-                }
-
-                if (newEmail === currentProfile.email) {
-
-                    showError(
-                        "현재 이메일과 동일합니다."
+                        "현재 이름과 동일합니다."
                     );
 
                     return;
                 }
 
                 await updateProfile({
-                    name: currentProfile.name,
-                    email: newEmail,
+                    name: newName,
                     phoneNumber: currentProfile.phoneNumber
                 });
             }
@@ -687,7 +677,6 @@
 
                 await updateProfile({
                     name: currentProfile.name,
-                    email: currentProfile.email,
                     phoneNumber: newPhoneNumber
                 });
             }
@@ -897,8 +886,8 @@
 
         function closeEditAreas() {
 
-            emailEditArea.classList.add("d-none");
-            emailViewArea.classList.remove("d-none");
+            nameEditArea.classList.add("d-none");
+            nameViewArea.classList.remove("d-none");
 
             phoneEditArea.classList.add("d-none");
             phoneViewArea.classList.remove("d-none");
@@ -907,13 +896,13 @@
 
         function setUpdateButtonsDisabled(disabled) {
 
-            emailEditButton.disabled =
+            nameEditButton.disabled =
                 disabled;
 
-            emailSaveButton.disabled =
+            nameSaveButton.disabled =
                 disabled;
 
-            emailCancelButton.disabled =
+            nameCancelButton.disabled =
                 disabled;
 
             phoneEditButton.disabled =
@@ -959,13 +948,6 @@
                     formatted;
             }
         );
-
-
-        function isValidEmail(email) {
-
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-                .test(email);
-        }
 
 
         function isValidPhoneNumber(phoneNumber) {

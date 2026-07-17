@@ -74,9 +74,7 @@ public class AdminService {
 
         Admin admin = findAdmin(adminId);
 
-        validateEmailForUpdate(adminId, request.email());
-
-        admin.updateProfile(request.name(), request.email(), request.phoneNumber());
+        admin.updateProfile(request.name(), request.phoneNumber());
 
         return AdminUpdateResponse.from(admin);
     }
@@ -158,13 +156,6 @@ public class AdminService {
     private Admin findAdmin(Long adminId) {
         return adminRepository.findByIdAndStatusNot(adminId, AdminStatus.DELETED)
                 .orElseThrow(() -> new AdminException.NotFound(adminId));
-    }
-
-    private void validateEmailForUpdate(Long adminId, String email) {
-        boolean duplicate = adminRepository.existsByEmailAndIdNot(email, adminId);
-        if (duplicate) {
-            throw new AdminException.DuplicateEmail();
-        }
     }
 
     private void validatePendingStatus(Admin admin) {
