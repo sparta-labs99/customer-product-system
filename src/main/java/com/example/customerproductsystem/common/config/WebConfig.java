@@ -30,11 +30,7 @@ public class WebConfig implements WebMvcConfigurer {
                 )
                 .excludePathPatterns(
                         "/login",
-                        "/signup",
-                        "/css/**",
-                        "/js/**",
-                        "/assets/**",
-                        "/error"
+                        "/signup"
                 );
 
 // 슈퍼 관리자 권한 인터셉터
