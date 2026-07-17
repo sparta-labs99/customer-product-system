@@ -1,6 +1,7 @@
 package com.example.customerproductsystem.product.controller;
 
 import com.example.customerproductsystem.admin.entity.AdminRole;
+import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
 import org.springframework.stereotype.Controller;
@@ -27,9 +28,13 @@ public class ProductViewController {
 
     @GetMapping("/new")
     public String productCreatePage(@SessionAttribute(name = SessionConst.LOGIN_ADMIN, required = false) LoginAdmin sessionAdmin) {
-        if (sessionAdmin == null || (sessionAdmin.role() != AdminRole.SUPER_ADMIN && sessionAdmin.role() != AdminRole.OPERATION_ADMIN)) {
-            return "error/401";
+        if (sessionAdmin == null) {
+            throw new AdminException.NotLogin();
         }
+        if (sessionAdmin.role() != AdminRole.SUPER_ADMIN &&sessionAdmin.role() != AdminRole.CS_ADMIN) {
+            throw new AdminException.OperationAdminRequired();
+        }
+
         return "product/product";
     }
 }
