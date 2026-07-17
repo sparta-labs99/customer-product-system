@@ -104,6 +104,16 @@ public class AdminException {
         }
     }
 
+    public static class CsAdminRequired extends CustomException {
+
+        public CsAdminRequired() {
+            super(
+                    ErrorCode.CS_ADMIN_REQUIRED,
+                    "CS 관리자 권한이 필요합니다."
+            );
+        }
+    }
+
     public static class LastSuperAdmin extends CustomException {
 
         public LastSuperAdmin() {

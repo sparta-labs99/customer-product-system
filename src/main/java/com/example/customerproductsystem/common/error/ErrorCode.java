@@ -24,6 +24,7 @@ public enum ErrorCode {
     ADMIN_SUSPENDED(HttpStatus.FORBIDDEN, "ADM_007", "정지된 관리자입니다."),
     ADMIN_INACTIVE(HttpStatus.FORBIDDEN, "ADM_008", "비활성화된 관리자입니다."),
     SUPER_ADMIN_REQUIRED(HttpStatus.FORBIDDEN, "ADM_009", "슈퍼 관리자 권한이 필요합니다."),
+    CS_ADMIN_REQUIRED(HttpStatus.FORBIDDEN, "ADM_010", "CS 관리자 권한이 필요합니다."),
     ADMIN_LAST_SUPER_ADMIN(HttpStatus.CONFLICT, "ADM_013", "마지막 활성 슈퍼 관리자는 보호됩니다."),
     ADMIN_CURRENT_PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "ADM_014", "현재 비밀번호가 일치하지 않습니다."),
     ADMIN_SAME_PASSWORD(HttpStatus.BAD_REQUEST, "ADM_015", "새 비밀번호는 기존 비밀번호와 같을 수 없습니다."),

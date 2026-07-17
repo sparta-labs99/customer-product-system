@@ -37,5 +37,29 @@ public class AdminInitializer implements CommandLineRunner {
                 );
 
         adminRepository.save(superAdmin);
+
+        if (!adminRepository.existsByRole(AdminRole.OPERATION_ADMIN)) {
+            Admin opAdmin = Admin.create(
+                    "운영 관리자",
+                    "opadmin@example.com",
+                    passwordEncoder.encode("superadmin123"),
+                    "010-1111-1111",
+                    AdminRole.OPERATION_ADMIN
+            );
+            opAdmin.approve();
+            adminRepository.save(opAdmin);
+        }
+
+        if (!adminRepository.existsByRole(AdminRole.CS_ADMIN)) {
+            Admin csAdmin = Admin.create(
+                    "CS 관리자",
+                    "csadmin@example.com",
+                    passwordEncoder.encode("superadmin123"),
+                    "010-2222-2222",
+                    AdminRole.CS_ADMIN
+            );
+            csAdmin.approve();
+            adminRepository.save(csAdmin);
+        }
     }
 }
