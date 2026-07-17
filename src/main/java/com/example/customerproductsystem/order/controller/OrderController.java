@@ -5,7 +5,6 @@ import com.example.customerproductsystem.auth.SessionConst;
 import com.example.customerproductsystem.common.response.ApiResponse;
 import com.example.customerproductsystem.order.dto.*;
 import com.example.customerproductsystem.order.service.OrderService;
-import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -40,7 +39,7 @@ public class OrderController {
      * 주문 리스트 조회 (페이징 및 검색)
      */
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<OrderSearchResponse>>> getOrders(
+    public ResponseEntity<ApiResponse<Page<OrderSearchResponse>>> getAllOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             OrderSearchCondition condition) {
@@ -56,7 +55,7 @@ public class OrderController {
         int pageIndex = Math.max(0, page - 1);
         Pageable pageable = PageRequest.of(pageIndex, size, Sort.by(dir, sortProperty));
 
-        Page<OrderSearchResponse> response = orderService.getOrders(condition, pageable);
+        Page<OrderSearchResponse> response = orderService.getAllOrders(condition, pageable);
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }

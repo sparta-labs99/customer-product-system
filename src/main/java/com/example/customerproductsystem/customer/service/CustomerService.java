@@ -42,7 +42,7 @@ public class CustomerService {
         Customer savedCustomer = customerRepository.save(customer);
 
         // 4. 저장된 엔티티를 Response DTO로 변환하여 반환
-        return new CreateCustomerResponse(savedCustomer);
+        return CreateCustomerResponse.from(savedCustomer);
     }
 
     /**
@@ -58,7 +58,7 @@ public class CustomerService {
                 pageable
         );
 
-        return customers.map(CreateCustomerResponse::new);
+        return customers.map(CreateCustomerResponse::from);
     }
 
     /**
@@ -72,7 +72,7 @@ public class CustomerService {
         long totalOrderCount = orderRepository.countByCustomerId(id);
         long totalPurchaseAmount = orderRepository.sumTotalPriceByCustomerId(id);
 
-        return new CustomerDetailResponse(customer, totalOrderCount, totalPurchaseAmount);
+        return CustomerDetailResponse.from(customer, totalOrderCount, totalPurchaseAmount);
     }
 
 
@@ -91,7 +91,7 @@ public class CustomerService {
         }
 
         //  이메일 중복 검증 수행 (이메일이 변경될 때에만)
-        if (!customer.getEmail().equals(request.getEmail())) {
+        if (request.getEmail() != null && !customer.getEmail().equals(request.getEmail())) {
             validateDuplicateEmail(request.getEmail());
         }
 
@@ -99,7 +99,7 @@ public class CustomerService {
         customer.updateCustomer(request);
 
         // 4. 수정 완료된 상태를 UpdateCustomerResponse DTO에 담아서 반환
-        return new UpdateCustomerResponse(customer);
+        return UpdateCustomerResponse.from(customer);
     }
 
     /**
@@ -125,16 +125,16 @@ public class CustomerService {
         customer.updateStatus(request.getStatus());
 
         // 3. 변경 완료된 상태를 응답 DTO에 담아서 반환
-        return new UpdateCustomerResponse(customer);
+        return UpdateCustomerResponse.from(customer);
     }
 
     /**
      * 고객 다중 삭제 (선택 삭제)
      */
     @Transactional
-    public void deleteCustomers(List<Long> ids) {
+    public void withdrawCustomers(List<Long> ids) {
         for (Long id : ids) {
-            deleteCustomer(id); // 기존에 만들어둔 단건 삭제 로직 재사용
+            withdrawCustomer(id);
         }
     }
 
@@ -142,7 +142,7 @@ public class CustomerService {
      * 고객 삭제 (상태 변경)
      */
     @Transactional
-    public void deleteCustomer(Long id) {
+    public void withdrawCustomer(Long id) {
         // 1. 기존 고객 정보 조회
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerException.NotFound(id));
@@ -152,7 +152,7 @@ public class CustomerService {
         }
 
         // 2. 엔티티 내부 메서드를 통해 상태를 INACTIVE로 변경 (더티 체킹)
-        customer.deleteCustomer();
+        customer.withdrawCustomer();
     }
 
 

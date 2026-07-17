@@ -1,6 +1,5 @@
 package com.example.customerproductsystem.order.dto;
 
-import com.example.customerproductsystem.admin.entity.AdminRole;
 import com.example.customerproductsystem.order.entity.Order;
 import com.example.customerproductsystem.order.entity.OrderStatus;
 import lombok.AccessLevel;

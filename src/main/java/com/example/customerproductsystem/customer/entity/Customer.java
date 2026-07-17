@@ -45,16 +45,22 @@ public class Customer extends BaseEntity {
     }
 
     public void updateCustomer(UpdateCustomerRequest request) {
-        this.name = request.getName();
-        this.email = request.getEmail();
-        this.phoneNumber = request.getPhoneNumber();
+        if (request.getName() != null) {
+            this.name = request.getName();
+        }
+        if (request.getEmail() != null) {
+            this.email = request.getEmail();
+        }
+        if (request.getPhoneNumber() != null) {
+            this.phoneNumber = request.getPhoneNumber();
+        }
     }
 
     public void updateStatus(CustomerStatus status) {
         this.status = status;
     }
 
-    public void deleteCustomer() {
+    public void withdrawCustomer() {
         this.status = CustomerStatus.INACTIVE;
     }
 }
