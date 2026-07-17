@@ -4,9 +4,11 @@ import com.example.customerproductsystem.auth.SessionConst;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.SessionAttribute;
 
 @Controller
+@RequestMapping("/view")
 public class AuthViewController {
 
     @GetMapping("/login")
@@ -25,10 +27,10 @@ public class AuthViewController {
     @GetMapping("/profile")
     public String profilePage() {return "admin/profile";}
 
-    @GetMapping("/view/admins")
+    @GetMapping("/admins")
     public String adminListPage() {return "admin/list";}
 
-    @GetMapping("/view/admins/{adminId}")
+    @GetMapping("/admins/{adminId}")
     public String adminDetailPage(@PathVariable Long adminId) {
         return "admin/detail";
     }
