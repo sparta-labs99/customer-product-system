@@ -29,7 +29,7 @@ public class CsAdminCheckInterceptor implements HandlerInterceptor {
             throw new AdminException.InvalidSession();
         }
 
-        if (loginAdmin.role() != AdminRole.CS_ADMIN) {
+        if (loginAdmin.role() != AdminRole.SUPER_ADMIN && loginAdmin.role() != AdminRole.CS_ADMIN) {
             throw new AdminException.CsAdminRequired();
         }
 
