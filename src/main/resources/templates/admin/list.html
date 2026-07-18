@@ -26,7 +26,7 @@
                                     <span class="ms-1 text-muted">명</span>
                                 </div>
                             </div>
-                            <div class="col-md-7 d-flex justify-content-end align-items-center gap-2 flex-wrap">
+                            <div class="col-md-7 d-flex justify-content-end align-items-center gap-2">
                                 <select id="roleSelect" class="form-select form-select-sm shadow-sm" style="width: 130px; cursor: pointer; height: 31px;">
                                     <option value="">전체 역할</option>
                                     <option value="OPERATION_ADMIN">운영 관리자</option>
@@ -42,28 +42,30 @@
                                     <option value="DELETED">삭제</option>
                                 </select>
                                 <div class="input-group input-group-sm shadow-sm" style="width: 260px; height: 31px;">
-                                    <input type="text" id="keywordInput" class="form-control" placeholder="이름 또는 이메일 검색" style="height: 31px;">
-                                    <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button" style="height: 31px;">
+                                    <input type="text" id="keywordInput" class="form-control" placeholder="이름 또는 이메일 검색">
+                                    <button class="btn btn-primary d-flex align-items-center" id="searchBtn" type="button">
                                         <i class="fas fa-search me-1"></i> 검색
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <table class="table table-bordered table-hover align-middle">
-                            <thead>
-                            <tr>
-                                                                <th class="text-center sortable" data-sort="id" style="width: 70px; cursor: pointer;">ID </th>
-                                <th>이름</th>
-                                <th style="width: 220px;">이메일</th>
-                                <th style="width: 150px;">전화번호</th>
-                                <th>역할</th>
-                                <th>상태</th>
-                                <th class="text-center" style="width: 180px;">회원가입 승인</th>
-                                <th>가입일</th>
-                            </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover align-middle text-nowrap">
+                                <thead>
+                                <tr>
+                                    <th class="text-center" style="width: 70px;">ID</th>
+                                    <th class="sortable" data-sort="name" style="cursor: pointer;">이름 <span class="sort-icon text-secondary" style="font-size: 0.8em;"></span></th>
+                                    <th class="sortable" data-sort="email" style="width: 220px; cursor: pointer;">이메일 <span class="sort-icon text-secondary" style="font-size: 0.8em;"></span></th>
+                                    <th style="width: 150px;">전화번호</th>
+                                    <th>역할</th>
+                                    <th>상태</th>
+                                    <th class="text-center" style="width: 180px;">회원가입 승인</th>
+                                    <th class="sortable" data-sort="createdAt" style="cursor: pointer;">가입일 <span class="sort-icon text-primary" style="font-size: 0.8em;">▼</span></th>
+                                </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -443,15 +445,19 @@
             paginationArea.innerHTML = html;
         }
 
+        const sortableHeaders = document.querySelectorAll('th.sortable');
+
         function updateSortIcons() {
-            document.querySelectorAll('.sort-icon').forEach(icon => {
-                const field = icon.dataset.sortIcon;
-                if (field === currentSortBy) {
-                    icon.className = currentDirection === 'asc'
-                        ? 'fas fa-sort-up sort-icon text-primary'
-                        : 'fas fa-sort-down sort-icon text-primary';
+            sortableHeaders.forEach(header => {
+                const iconSpan = header.querySelector('.sort-icon');
+                if (!iconSpan) return;
+                
+                if (header.dataset.sort === currentSortBy) {
+                    iconSpan.textContent = currentDirection === 'desc' ? '▼' : '▲';
+                    iconSpan.className = 'sort-icon text-primary';
                 } else {
-                    icon.className = 'fas fa-sort sort-icon text-muted';
+                    iconSpan.textContent = '';
+                    iconSpan.className = 'sort-icon text-secondary';
                 }
             });
         }
@@ -462,14 +468,14 @@
         statusSelect.addEventListener('change', () => loadAdmins(1));
         sizeSelect.addEventListener('change', () => loadAdmins(1));
 
-        document.querySelectorAll('th.sortable').forEach(th => {
+        sortableHeaders.forEach(th => {
             th.addEventListener('click', function () {
                 const field = this.dataset.sort;
                 if (currentSortBy === field) {
-                    currentDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+                    currentDirection = currentDirection === 'desc' ? 'asc' : 'desc';
                 } else {
                     currentSortBy = field;
-                    currentDirection = 'asc';
+                    currentDirection = 'desc';
                 }
                 updateSortIcons();
                 loadAdmins(1);
