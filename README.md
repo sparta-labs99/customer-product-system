@@ -23,12 +23,13 @@ src
 └── main
     └── java
         └── com.example.customerproductsystem
-            ├── admin           # 관리자 도메인 (회원/상품/주문 통합 제어)
+            ├── admin           # 관리자 도메인 (고객/상품/주문/리뷰 통합 제어)
             ├── common          # 공통 기능 (설정, BaseEntity, 글로벌 예외 처리 등)
             ├── customer        # 고객 도메인 (인증, 프로필 관리 등)
             │   ├── controller  # API 요청 처리 및 응답 반환
             │   ├── dto         # 계층 간 데이터 교환 객체 (Request/Response 분리)
             │   ├── entity      # DB 테이블 매핑 도메인 객체
+            │   ├── error       # 도메인 커스텀 에러
             │   ├── repository  # Spring Data JPA 기반 DB 접근 계층
             │   └── service     # 핵심 비즈니스 로직 및 트랜잭션 처리
             ├── order           # 주문 도메인 (주문 생성, 취소, 재고 차감/복구)
@@ -68,8 +69,8 @@ src
 - **상태 변경 흐름**: `PENDING`(준비중) -> `SHIPPING`(배송중) -> `COMPLETED`(배송완료) 순서로 상태 변경이 가능합니다. 허용되지 않은 비정상적인 상태 변경(예: 이미 취소된 주문을 배송중으로 변경) 시도 시 도메인 예외(`INVALID_ORDER_STATUS_TRANSITION`)를 발생시킵니다.
 - **주문 취소 조건**: `PENDING` 상태의 주문만 취소(`CANCELED`)가 가능하며, 이미 배송중이거나 배송완료된 주문은 취소가 불가합니다(`CANNOT_CANCEL_ORDER`). 취소 시 차감되었던 재고는 즉시 복구됩니다.
 
-#### 🛡️ 4. 관리자 (Admin) 
 
+#### 🛡️ 4. 관리자 (Admin)
 * **관리자 가입 및 승인 흐름**
     * 관리자 회원가입 시 이메일 중복 여부를 검증하며, 중복 시 예외(EMAIL_DUPLICATION)를 발생시킵니다.
     * 비밀번호는 BCrypt로 암호화하여 저장하며, 신규 관리자는 PENDING(승인 대기) 상태로 등록됩니다.
