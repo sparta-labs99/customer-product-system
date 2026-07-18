@@ -4,11 +4,9 @@ import com.example.customerproductsystem.admin.entity.AdminRole;
 import com.example.customerproductsystem.admin.error.AdminException;
 import com.example.customerproductsystem.auth.LoginAdmin;
 import com.example.customerproductsystem.auth.SessionConst;
-import com.example.customerproductsystem.common.error.CustomException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -22,10 +20,6 @@ public class SuperAdminCheckInterceptor implements HandlerInterceptor {
         String requestURI = request.getRequestURI(); // 안전하고 확실하게 주소 가져오기
         String method = request.getMethod();
         if (requestURI.startsWith("/customers") && !(method.equals("PATCH") || method.equals("DELETE"))) {
-            return true;
-        }
-
-        if (requestURI.startsWith("/products") && !(method.equals("POST"))) {
             return true;
         }
 

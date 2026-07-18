@@ -15,7 +15,7 @@ public class OperationAdminCheckInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
-        if (!request.getMethod().equals("POST")) {
+        if (!(request.getMethod().equals("POST") && request.getMethod().equals("DELETE"))) {
             return true;
         }
 

@@ -51,9 +51,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns(
                         "/admins/**",
                         "/customers",
-                        "/customers/**",
-                        "/products",
-                        "/products/**"
+                        "/customers/**"
                 )
                 .excludePathPatterns(
                         "/signup",
