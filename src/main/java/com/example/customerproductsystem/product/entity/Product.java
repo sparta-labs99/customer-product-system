@@ -55,11 +55,12 @@ public class Product extends BaseEntity {
     }
 
     public void updateStock(int stock) {
-        this.stock = stock;
 
         if (stock < 0) {
             throw new IllegalArgumentException("재고는 0보다 작을 수 없습니다.");
         }
+
+        this.stock = stock;
 
         // 단종 상태인 경우 재고만 변경하고 상태 자동 전환은 무시
         if (this.status == ProductStatus.DISCONTINUED) {
