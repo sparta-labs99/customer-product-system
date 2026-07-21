@@ -53,14 +53,7 @@ public class ProductService {
         Admin admin = adminRepository.findById(sessionAdmin.id()).orElseThrow(
                 () -> new CustomException(ErrorCode.ADMIN_NOT_FOUND));
 
-        Product product = new Product(
-                request.getName(),
-                category,
-                request.getPrice(),
-                request.getStock(),
-                status,
-                admin
-        );
+        Product product = request.toEntity(category, status, admin);
 
         productRepository.save(product);
 

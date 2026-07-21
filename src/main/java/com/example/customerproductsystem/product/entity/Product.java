@@ -5,6 +5,7 @@ import com.example.customerproductsystem.admin.entity.Admin;
 import com.example.customerproductsystem.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -39,6 +40,7 @@ public class Product extends BaseEntity {
     @JoinColumn(name = "admin_id", nullable = false)
     private Admin admin;
 
+    @Builder
     public Product(String name, Categories category, int price, int stock, ProductStatus status, Admin admin) {
         this.name = name;
         this.category = category;
@@ -81,12 +83,11 @@ public class Product extends BaseEntity {
 
     /*주문 재고 차감*/
     public void decreaseStockForOrder(int orderQuantity) {
-        if (this.status == ProductStatus.DISCONTINUED) {
-            throw new IllegalArgumentException("단종된 상품으로 주문할 수 없습니다.");
-        }
 
-        if (this.status == ProductStatus.OUT_OF_STOCK || this.stock == 0) {
-            throw new IllegalArgumentException("품절된 상품으로 주문할 수 없습니다.");
+        if (!this.status.isOrderable(this.stock)) {
+            throw new IllegalArgumentException("상품을 주문할 수 없습니다."
+                    + "( 상태 :" + this.status.getDescription()
+                    + " 재고: " + this.stock + " )");
         }
 
         if (this.stock < orderQuantity) {
