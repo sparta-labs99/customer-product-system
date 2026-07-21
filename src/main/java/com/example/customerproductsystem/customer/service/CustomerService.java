@@ -1,7 +1,6 @@
 package com.example.customerproductsystem.customer.service;
 
 import com.example.customerproductsystem.common.config.PasswordEncoder;
-import com.example.customerproductsystem.common.error.CustomException;
 import com.example.customerproductsystem.customer.dto.*;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.entity.CustomerStatus;
@@ -11,7 +10,6 @@ import com.example.customerproductsystem.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
