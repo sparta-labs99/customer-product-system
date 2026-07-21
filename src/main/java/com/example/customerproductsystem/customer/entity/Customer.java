@@ -2,6 +2,9 @@ package com.example.customerproductsystem.customer.entity;
 
 import com.example.customerproductsystem.common.entity.BaseEntity;
 import com.example.customerproductsystem.customer.dto.UpdateCustomerRequest;
+import com.example.customerproductsystem.common.error.CustomException;
+import com.example.customerproductsystem.customer.error.CustomerException;
+import org.springframework.http.HttpStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -56,11 +59,24 @@ public class Customer extends BaseEntity {
         }
     }
 
-    public void updateStatus(CustomerStatus status) {
-        this.status = status;
+    public void updateStatus(CustomerStatus newStatus) {
+        if (this.status == CustomerStatus.INACTIVE) { // 현재 상태가 탈퇴
+            throw new CustomerException.AlreadyDeleted(this.id);
+        }
+        if (newStatus == CustomerStatus.INACTIVE) { // 변경될 상태가 탈퇴 (withdrawCustomer api 통해서만 탈퇴 가능)
+            throw new CustomException(HttpStatus.BAD_REQUEST, "상태 변경 API를 통해서는 탈퇴 처리를 할 수 없습니다.");
+        }
+        if (!this.status.canChangeTo(newStatus)) {
+            throw new CustomException(HttpStatus.BAD_REQUEST, 
+                "상태 변경이 불가능합니다. (" + this.status.name() + " -> " + newStatus.name() + ")");
+        }
+        this.status = newStatus;
     }
 
     public void withdrawCustomer() {
+        if (this.status == CustomerStatus.INACTIVE) {
+            throw new CustomerException.AlreadyDeleted(this.id);
+        }
         this.status = CustomerStatus.INACTIVE;
     }
 }

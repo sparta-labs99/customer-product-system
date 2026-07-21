@@ -32,7 +32,6 @@ import static com.example.customerproductsystem.order.util.GenerateOrderNum.gene
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class OrderService {
 
     private final OrderRepository orderRepository;

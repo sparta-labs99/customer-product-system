@@ -76,8 +76,9 @@ public class Order extends BaseEntity {
         this.status = status != null ? status : OrderStatus.PENDING;
     }
 
+    /*주문 취소*/
     public void cancelOrder(String cancelReason) {
-        if (this.status != OrderStatus.PENDING) {
+        if (!this.status.canChangeTo(OrderStatus.CANCELED)) {
             throw new OrderException.CannotCancelOrder(this.status.name());
         }
 
@@ -86,20 +87,11 @@ public class Order extends BaseEntity {
         this.status = OrderStatus.CANCELED;
     }
 
+    /*주문 상태 변경*/
     public void changeStatus(OrderStatus newStatus) {
-        if (this.status == OrderStatus.CANCELED) {
-            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
-        }
-
-        if (this.status == OrderStatus.COMPLETED) {
-            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
-        }
-
-        if (this.status == OrderStatus.PENDING && newStatus != OrderStatus.SHIPPING) {
-            throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
-        }
-
-        if (this.status == OrderStatus.SHIPPING && newStatus != OrderStatus.COMPLETED) {
+        // CANCELED 상태로는 changeStatus를 통해 직접 변경할 수 없음 (cancelOrder 메서드 사용)
+        // Enum 스스로가 현재 상태를 기준으로 새로 들어온 요청 상태로 변경 가능한지 판단
+        if (newStatus == OrderStatus.CANCELED || !this.status.canChangeTo(newStatus)) {
             throw new OrderException.InvalidStatusTransition(this.status.name(), newStatus.name());
         }
 
