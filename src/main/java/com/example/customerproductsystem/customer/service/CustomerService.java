@@ -1,7 +1,6 @@
 package com.example.customerproductsystem.customer.service;
 
 import com.example.customerproductsystem.common.config.PasswordEncoder;
-import com.example.customerproductsystem.common.error.CustomException;
 import com.example.customerproductsystem.customer.dto.*;
 import com.example.customerproductsystem.customer.entity.Customer;
 import com.example.customerproductsystem.customer.entity.CustomerStatus;
@@ -11,7 +10,6 @@ import com.example.customerproductsystem.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -111,17 +109,7 @@ public class CustomerService {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerException.NotFound(id));
 
-        // 삭제된 고객은 정보 수정 불가
-        if (customer.getStatus() == CustomerStatus.INACTIVE) {
-            throw new CustomerException.AlreadyDeleted(id);
-        }
-
-        // 삭제는 deleteCustomer() 통해서만 가능
-        if (request.getStatus() == CustomerStatus.INACTIVE) {
-            throw new CustomException(HttpStatus.BAD_REQUEST, "상태 변경 API를 통해서는 탈퇴 처리를 할 수 없습니다.");
-        }
-
-        // 2. 엔티티 내부 메서드를 통해 상태값 변경
+        // 2. 엔티티 내부 메서드를 통해 상태값 변경 (상태 전이 검증은 Entity/Enum이 알아서 담당)
         customer.updateStatus(request.getStatus());
 
         // 3. 변경 완료된 상태를 응답 DTO에 담아서 반환
@@ -146,10 +134,6 @@ public class CustomerService {
         // 1. 기존 고객 정보 조회
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerException.NotFound(id));
-
-        if (customer.getStatus() == CustomerStatus.INACTIVE) {
-            throw new CustomerException.AlreadyDeleted(id);
-        }
 
         // 2. 엔티티 내부 메서드를 통해 상태를 INACTIVE로 변경 (더티 체킹)
         customer.withdrawCustomer();
